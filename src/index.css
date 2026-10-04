@@ -1,0 +1,201 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base ──────────────────────────────────────────────────── */
+@layer base {
+  html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+  body { @apply font-sans text-gray-800 antialiased bg-white; }
+  h1,h2,h3,h4,h5,h6 { @apply font-heading; }
+  *:focus-visible {
+    @apply outline-none ring-2 ring-primary-500 ring-offset-2;
+  }
+}
+
+/* ── Components ────────────────────────────────────────────── */
+@layer components {
+
+  /* Buttons */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3
+           bg-primary-800 text-white font-semibold rounded-xl
+           hover:bg-primary-700 active:scale-[0.98]
+           transition-all duration-200 shadow-card
+           focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2;
+  }
+  .btn-primary-lg {
+    @apply btn-primary px-8 py-4 text-base rounded-2xl shadow-card-hover;
+  }
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3
+           border-2 border-primary-800 text-primary-800 font-semibold rounded-xl
+           hover:bg-primary-800 hover:text-white active:scale-[0.98]
+           transition-all duration-200
+           focus-visible:ring-2 focus-visible:ring-primary-500;
+  }
+  .btn-white {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3
+           bg-white text-primary-800 font-semibold rounded-xl shadow-card
+           hover:bg-primary-50 hover:shadow-card-hover active:scale-[0.98]
+           transition-all duration-200
+           focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-primary-800;
+  }
+  .btn-gold {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3
+           bg-gold-500 hover:bg-gold-600 text-white font-semibold rounded-xl
+           active:scale-[0.98] shadow-md transition-all duration-200;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2
+           text-primary-700 font-medium rounded-lg
+           hover:bg-primary-50 transition-colors duration-150;
+  }
+
+  /* Cards */
+  .card {
+    @apply bg-white rounded-2xl border border-gray-100 shadow-card
+           hover:shadow-card-hover transition-all duration-300 p-6;
+  }
+  .card-flat {
+    @apply bg-white rounded-2xl border border-gray-100 p-6;
+  }
+  .card-blue {
+    @apply bg-gradient-to-br from-primary-800 to-primary-900 rounded-2xl
+           border border-primary-700/50 p-6 text-white;
+  }
+
+  /* Badges */
+  .badge         { @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold; }
+  .badge-blue    { @apply badge bg-primary-100 text-primary-800; }
+  .badge-green   { @apply badge bg-trust-100 text-trust-700; }
+  .badge-gold    { @apply badge bg-gold-100 text-gold-700; }
+  .badge-red     { @apply badge bg-red-100 text-red-700; }
+  .badge-gray    { @apply badge bg-gray-100 text-gray-600; }
+
+  /* Section */
+  .section        { @apply py-16 sm:py-20 lg:py-24; }
+  .section-light  { @apply section bg-white; }
+  .section-muted  { @apply section bg-surface-50; }
+  .section-dark   { @apply section bg-primary-950; }
+  .container-xl   { @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8; }
+
+  /* Typography */
+  .heading-xl   { @apply text-4xl sm:text-5xl lg:text-6xl font-heading font-bold leading-tight; }
+  .heading-lg   { @apply text-3xl sm:text-4xl font-heading font-bold leading-tight; }
+  .heading-md   { @apply text-2xl sm:text-3xl font-heading font-bold; }
+  .heading-sm   { @apply text-xl sm:text-2xl font-heading font-bold; }
+  .eyebrow      {
+    @apply inline-flex items-center gap-2 px-4 py-1.5 rounded-full
+           bg-primary-50 text-primary-700 border border-primary-100
+           text-xs font-bold uppercase tracking-widest;
+  }
+  .eyebrow-white {
+    @apply inline-flex items-center gap-2 px-4 py-1.5 rounded-full
+           bg-white/15 text-white border border-white/25
+           text-xs font-bold uppercase tracking-widest;
+  }
+  .section-label {
+    @apply text-center space-y-3 mb-12;
+  }
+
+  /* Forms */
+  .input {
+    @apply w-full px-4 py-3 text-sm border border-gray-200 rounded-xl bg-white
+           text-gray-900 placeholder:text-gray-400
+           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
+           transition-shadow duration-150;
+  }
+  .input-error { @apply input border-red-300 focus:ring-red-400; }
+  .label       { @apply block text-sm font-semibold text-gray-700 mb-1.5; }
+  .label-req::after { content: ' *'; @apply text-red-500; }
+
+  /* Tables */
+  .table-header { @apply bg-gray-50 border-b border-gray-100; }
+  .table-th     { @apply px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider; }
+  .table-td     { @apply px-4 py-3 text-sm text-gray-800; }
+  .table-row    { @apply border-b border-gray-50 hover:bg-blue-50/30 transition-colors; }
+
+  /* Sidebar nav */
+  .sidebar-link {
+    @apply flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium
+           text-gray-600 hover:text-primary-800 hover:bg-primary-50
+           transition-all duration-150 cursor-pointer;
+  }
+  .sidebar-link-active {
+    @apply sidebar-link bg-primary-800 text-white hover:bg-primary-700 hover:text-white
+           shadow-card;
+  }
+
+  /* Trust badge strip */
+  .trust-badge {
+    @apply flex items-center gap-2 px-3 py-1.5 bg-white/10 rounded-lg
+           border border-white/20 text-white/90 text-xs font-semibold;
+  }
+}
+
+/* ── Utilities ─────────────────────────────────────────────── */
+@layer utilities {
+  .text-balance    { text-wrap: balance; }
+  .scrollbar-thin  { scrollbar-width: thin; scrollbar-color: #93c5fd transparent; }
+  .no-scrollbar    { scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .glass {
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .glass-dark {
+    background: rgba(15,31,78,0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+  .gradient-text {
+    background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .gradient-text-gold {
+    background: linear-gradient(135deg, #d97706, #fbbf24);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .divider { @apply h-px w-full bg-gradient-to-r from-transparent via-gray-200 to-transparent; }
+  .divider-white { @apply h-px w-full bg-gradient-to-r from-transparent via-white/20 to-transparent; }
+}
+
+/* ── Ticker animation ──────────────────────────────────────── */
+.ticker-wrap {
+  overflow: hidden;
+  width: 100%;
+}
+.ticker-content {
+  display: inline-block;
+  animation: ticker 40s linear infinite;
+  white-space: nowrap;
+  padding-left: 100%;
+}
+.ticker-content:hover { animation-play-state: paused; }
+
+/* ── Hero background pattern ────────────────────────────────── */
+.hero-pattern {
+  background-image:
+    radial-gradient(circle at 20% 50%, rgba(59,130,246,0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(251,191,36,0.08) 0%, transparent 40%),
+    radial-gradient(circle at 60% 80%, rgba(30,58,138,0.2) 0%, transparent 50%);
+}
+
+/* ── Skeleton loader ─────────────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 0.5rem;
+}
+
+/* ── Page transitions ─────────────────────────────────────────── */
+.page-enter { animation: fadeIn 0.3s ease-out; }

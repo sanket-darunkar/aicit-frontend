@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment files — NEVER commit
+.env
+.env.local
+.env.*.local
+
+# ─────────────────────────────────────────────────────────────
+# SENSITIVE DOCUMENTS — DO NOT COMMIT
+# Original uploaded government / certification documents
+# These contain PAN, bank details, personal addresses, etc.
+# ─────────────────────────────────────────────────────────────
+public/*.pdf
+public/*.docx
+public/*.doc
+
+# OS / IDE artifacts
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
