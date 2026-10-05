@@ -16,7 +16,12 @@ export function AdminAuthProvider({ children }) {
     setError(null);
     try {
       const res = await apiAdminLogin(email, password);
-      const userData = res.data;
+      // res = full body: { success, message, data: { token, role, ... } }
+      // res.data = { token, role, email, fullName, ... }
+      const userData = res?.data;
+      if (!userData?.token) {
+        throw new Error(res?.message || 'Login failed. Please try again.');
+      }
       auth.setAdminToken(userData.token);
       auth.setAdminUser(userData);
       setUser(userData);

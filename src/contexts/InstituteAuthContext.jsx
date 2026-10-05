@@ -16,7 +16,12 @@ export function InstituteAuthProvider({ children }) {
     setError(null);
     try {
       const res = await apiInstituteLogin(email, password);
-      const userData = res.data;
+      // res = full body: { success, message, data: { token, role, ... } }
+      // res.data = { token, role, email, fullName, instituteId, instituteName, ... }
+      const userData = res?.data;
+      if (!userData?.token) {
+        throw new Error(res?.message || 'Login failed. Please try again.');
+      }
       auth.setInstituteToken(userData.token);
       auth.setInstituteUser(userData);
       setUser(userData);
