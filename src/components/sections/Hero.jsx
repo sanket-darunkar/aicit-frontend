@@ -40,20 +40,26 @@ export default function Hero() {
   const displayStats = [
     {
       label: t('stats.institutes'),
-      value: liveStats?.totalInstitutes != null ? liveStats.totalInstitutes + '+' : '50+',
+      value: (liveStats?.totalInstitutes != null && liveStats.totalInstitutes > 50)
+        ? liveStats.totalInstitutes + '+'
+        : '50+',
       icon: '🏫',
     },
     {
       label: t('stats.students'),
-      value: liveStats?.totalStudents != null ? liveStats.totalStudents + '+' : '5,000+',
+      value: (liveStats?.totalStudents != null && liveStats.totalStudents > 5000)
+        ? liveStats.totalStudents.toLocaleString('en-IN') + '+'
+        : '5,000+',
       icon: '🎓',
     },
     {
       label: t('stats.certificates'),
-      value: liveStats?.totalCertificates != null ? liveStats.totalCertificates + '+' : '3,500+',
+      value: (liveStats?.totalCertificates != null && liveStats.totalCertificates > 3500)
+        ? liveStats.totalCertificates.toLocaleString('en-IN') + '+'
+        : '3,500+',
       icon: '📜',
     },
-    { label: t('stats.courses'), value: '25+', icon: '📚' },
+    { label: t('stats.courses'), value: '350+', icon: '📚' },
   ];
 
   return (

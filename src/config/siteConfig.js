@@ -11,7 +11,7 @@ export const SITE = {
   description: 'A centralized education and certificate management platform for authorized institutes across India.',
   url:         'https://aicit.org',               // [PENDING – update with actual domain]
   email:       'info@aicit.org',                  // [PENDING]
-  phone:       '+91 9156348591',                  // [PENDING – update with AICIT contact]
+  phone:       '+91 8888723485',                  // [PENDING – update with AICIT contact]
   address: {
     line1:  'Lok Kalyan Society, Anmol Nagar',
     line2:  'Wathoda Layout, Nagpur',
@@ -23,7 +23,7 @@ export const SITE = {
     instagram: '',   // [PENDING]
     twitter:   '',   // [PENDING]
     youtube:   '',   // [PENDING]
-    whatsapp:  '919156348591',
+    whatsapp:  '918888723485',
   },
   establishedYear: 2024,   // [PENDING – confirm actual year]
 };
@@ -117,8 +117,8 @@ export const WHY_CHOOSE_US = [
 
 // ── Platform stats (static placeholders; replace with live API later) ──
 export const STATS = [
-  { label: 'Affiliated Institutes', value: '50+',    icon: 'building' },
-  { label: 'Students Enrolled',     value: '5,000+', icon: 'users'    },
-  { label: 'Certificates Issued',   value: '3,500+', icon: 'badge'    },
-  { label: 'Courses Offered',       value: '25+',    icon: 'book'     },
+  { label: 'Affiliated Institutes', value: '50+',   icon: 'building' },
+  { label: 'Students Enrolled',     value: '5,000+', icon: 'users'   },
+  { label: 'Certificates Issued',   value: '3,500+', icon: 'badge'   },
+  { label: 'Courses Offered',       value: '350+',   icon: 'book'    },
 ];

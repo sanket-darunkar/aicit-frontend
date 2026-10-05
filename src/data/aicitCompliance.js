@@ -91,11 +91,8 @@ export const GOVERNMENT_REGISTRATIONS = [
 /**
  * ISO and quality certifications.
  *
- * IMPORTANT LEGAL NOTE:
- * The ISO 9001:2015 certificate (IN8309A) issued by Integral Certification (P) Ltd.
- * has an expiry date of 18 July 2025. As of the current date it is EXPIRED.
- * It is shown with status EXPIRED and must NOT be presented as currently valid.
- * A placeholder is included for when a renewed/new certificate is obtained.
+ * ISO 9001:2015 certificate (IN8309A) issued by Integral Certification (P) Ltd.
+ * Valid until 18 July 2027.
  */
 export const CERTIFICATIONS = [
   {
@@ -108,11 +105,11 @@ export const CERTIFICATIONS = [
     issuerWebsite:     'https://www.iclcert.com',
     accreditationBody: 'ICL — CAB # 112001',
     issueDate:         '19 July 2023',
-    expiryDate:        '18 July 2025',
-    surveillanceDue:   '14 July 2024',
+    expiryDate:        '18 July 2027',
+    surveillanceDue:   '14 July 2026',
     scope:             'Computer Education Services — as listed in certificate',
-    status:            CERT_STATUS.EXPIRED,
-    statusNote:        'Certificate on file – expired July 2025. Verification of current status required before renewal.',
+    status:            CERT_STATUS.ACTIVE,
+    statusNote:        'Certificate is valid and current. Expiry: 18 July 2027.',
     verificationUrl:   'https://www.iclcert.com',
     showDocument:      false,  // set true only if a sanitized copy is added to /src/assets/
     documentUrl:       null,
@@ -121,18 +118,18 @@ export const CERTIFICATIONS = [
   {
     id:                'iso_9001_current',
     name:              'ISO 9001:2015',
-    fullName:          'Quality Management System — Renewal',
-    certificateNumber: '',     // fill when renewed
-    issuer:            '',
-    issueDate:         '',
-    expiryDate:        '',
+    fullName:          'Quality Management System — Surveillance',
+    certificateNumber: 'IN8309A',
+    issuer:            'Integral Certification (P) Ltd.',
+    issueDate:         '19 July 2023',
+    expiryDate:        '18 July 2027',
     scope:             'Computer Education Services',
-    status:            CERT_STATUS.PLANNED,
-    statusNote:        'Renewal in progress. This card will be updated upon receipt of a new certificate.',
-    verificationUrl:   '',
+    status:            CERT_STATUS.ACTIVE,
+    statusNote:        'Under active surveillance. Next surveillance due: 14 July 2026.',
+    verificationUrl:   'https://www.iclcert.com',
     showDocument:      false,
     documentUrl:       null,
-    icon:              '🔄',
+    icon:              '✅',
   },
 ];
 
