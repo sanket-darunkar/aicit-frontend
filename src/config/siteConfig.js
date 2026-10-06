@@ -28,6 +28,36 @@ export const SITE = {
   establishedYear: 2024,   // [PENDING – confirm actual year]
 };
 
+// ── Payment / UPI config ─────────────────────────────────────
+// Certificate pricing is enforced server-side (₹250 per certificate).
+// These values only control what the institute SEES on the payment screen.
+// Payment is manual/out-of-band: the institute pays via UPI, then submits
+// the UTR/reference number, which an AICIT admin verifies manually.
+//
+// Everything here is overridable via Vite env vars (VITE_UPI_*), so the
+// UPI ID / payee / QR can be changed per environment WITHOUT touching code.
+//
+// QR image:
+//   - If VITE_UPI_QR_IMAGE (or staticQrImage below) points to an image, that
+//     exact QR is shown as-is (recommended for a bank-issued static QR).
+//   - Otherwise a QR is generated dynamically from upiVpa + amount so the
+//     scanned payee always matches the UPI ID displayed on screen.
+const env = import.meta.env;
+
+export const PAYMENT = {
+  unitAmount:     Number(env.VITE_UPI_UNIT_AMOUNT ?? 250),  // ₹ per certificate (display only; server is source of truth)
+  currency:       'INR',
+  currencySymbol: '₹',
+  upiVpa:         env.VITE_UPI_VPA        ?? '1202946131@airtel',
+  payeeName:      env.VITE_UPI_PAYEE_NAME ?? 'AICIT',
+  note:           env.VITE_UPI_NOTE       ?? 'AICIT Certificate Fee',
+  // Optional pre-generated/bank-issued static QR image served from /public.
+  // When present it is shown as-is (a bank static QR has NO amount embedded,
+  // so the payer types the amount in). If the file is missing or unset, the
+  // panel generates the QR dynamically from the VPA + amount instead.
+  staticQrImage:  env.VITE_UPI_QR_IMAGE   ?? '/payment/aicitQR.jpeg',
+};
+
 // ── Announcement ticker messages ─────────────────────────────
 export const ANNOUNCEMENTS = [
   'Institute Registration Open – Apply Now to become an Authorized AICIT Partner',

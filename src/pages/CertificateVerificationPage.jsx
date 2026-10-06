@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useLang } from '../i18n/LanguageContext.jsx';
+import { BASE_URL } from '../services/api.js';
 
 function FieldRow({ label, value, mono }) {
   if (!value) return null;
@@ -134,7 +135,7 @@ export default function CertificateVerificationPage() {
     if (!number) return;
     setStatus('loading'); setResult(null); setErrorMsg('');
     try {
-      const res  = await fetch(`/api/public/certificates/verify/${encodeURIComponent(number)}`);
+      const res  = await fetch(`${BASE_URL}/api/public/certificates/verify/${encodeURIComponent(number)}`);
       if (res.status === 404) { setStatus('not_found'); return; }
       const body = await res.json();
       if (!res.ok) { setStatus('error'); setErrorMsg(body?.message || t('common.error')); return; }

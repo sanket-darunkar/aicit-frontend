@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
-import { listCertificates, listStudents, requestCertificate } from '../../services/instituteService.js';
-import { getPublicCourses } from '../../services/publicService.js';
-import { auth } from '../../services/api.js';
+import { useNavigate } from 'react-router-dom';
+import { listCertificates, downloadCertificatePdf } from '../../services/instituteService.js';
 
 const STATUS_COLORS = {
   REQUESTED:    'bg-yellow-100 text-yellow-800',
@@ -20,7 +18,7 @@ export default function InstituteCertificatesPage() {
   const [page,        setPage]      = useState(0);
   const [loading,     setLoading]   = useState(false);
   const [error,       setError]     = useState(null);
-  const [showRequest, setShowRequest] = useState(false);
+  const navigate = useNavigate();
 
   const load = useCallback(async () => {
     setLoading(true); setError(null);
@@ -36,20 +34,14 @@ export default function InstituteCertificatesPage() {
 
   const handleDownload = async (id, certNumber) => {
     try {
-      const token = auth.getInstituteToken();
-      const res = await fetch(`/api/institute/certificates/${id}/download`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!res.ok) { alert('PDF not available yet.'); return; }
-      const blob = await res.blob();
-      const url  = URL.createObjectURL(blob);
-      const a    = document.createElement('a');
+      const blob = await downloadCertificatePdf(id);
+      if (!blob || blob.size === 0) { alert('PDF not available yet.'); return; }
+      const url = URL.createObjectURL(blob);
+      const a   = document.createElement('a');
       a.href = url; a.download = `${certNumber}.pdf`; a.click();
       URL.revokeObjectURL(url);
     } catch (err) { alert('Download failed: ' + err.message); }
   };
-
-  const TABS = ['', 'REQUESTED', 'UNDER_REVIEW', 'ISSUED', 'REJECTED'];
 
   return (
     <div className="space-y-5">
@@ -58,9 +50,9 @@ export default function InstituteCertificatesPage() {
           <h1 className="text-2xl font-heading font-bold text-primary-900">Certificates</h1>
           <p className="text-sm text-gray-500">{pagination.totalElements} total</p>
         </div>
-        <button onClick={() => setShowRequest(true)}
+        <button onClick={() => navigate('/institute/batches')}
           className="btn-primary text-sm">
-          + Request Certificate
+          + Apply for Certificate
         </button>
       </div>
 
@@ -91,9 +83,9 @@ export default function InstituteCertificatesPage() {
           <div className="text-center py-16">
             <div className="text-4xl mb-3">📜</div>
             <p className="text-gray-500 font-medium">No certificates found</p>
-            <button onClick={() => setShowRequest(true)}
+            <button onClick={() => navigate('/institute/batches')}
               className="mt-3 text-sm text-primary-700 underline">
-              Request your first certificate →
+              Apply for your first certificate →
             </button>
           </div>
         ) : (
@@ -145,88 +137,7 @@ export default function InstituteCertificatesPage() {
         </div>
       )}
 
-      {/* Request modal */}
-      {showRequest && (
-        <CertRequestModal onClose={() => setShowRequest(false)} onSuccess={() => { setShowRequest(false); load(); }} />
-      )}
     </div>
   );
 }
 
-// ── Certificate Request Modal ─────────────────────────────────
-function CertRequestModal({ onClose, onSuccess }) {
-  const [students, setStudents] = useState([]);
-  const [courses,  setCourses]  = useState([]);
-  const [form,     setForm]     = useState({ studentId: '', courseId: '', marks: '', grade: '' });
-  const [loading,  setLoading]  = useState(false);
-  const [error,    setError]    = useState(null);
-
-  useEffect(() => {
-    listStudents({ size: 100 }).then(r => setStudents(r.data?.content ?? [])).catch(() => {});
-    getPublicCourses().then(r => setCourses(r.data ?? [])).catch(() => {});
-  }, []);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true); setError(null);
-    try {
-      await requestCertificate({
-        studentId: parseInt(form.studentId),
-        courseId:  parseInt(form.courseId),
-        marks:     form.marks || null,
-        grade:     form.grade || null,
-      });
-      onSuccess();
-    } catch (err) { setError(err.message); setLoading(false); }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
-        <h3 className="text-lg font-heading font-bold text-primary-900 mb-4">Request Certificate</h3>
-        {error && <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{error}</div>}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Student <span className="text-red-500">*</span></label>
-            <select required value={form.studentId} onChange={e => setForm(f => ({...f, studentId: e.target.value}))}
-              className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
-              <option value="">Select student...</option>
-              {students.map(s => <option key={s.id} value={s.id}>{s.fullName} ({s.studentId})</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Course <span className="text-red-500">*</span></label>
-            <select required value={form.courseId} onChange={e => setForm(f => ({...f, courseId: e.target.value}))}
-              className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
-              <option value="">Select course...</option>
-              {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Marks</label>
-              <input type="text" value={form.marks} onChange={e => setForm(f=>({...f, marks:e.target.value}))}
-                placeholder="e.g. 450/500"
-                className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"/>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Grade</label>
-              <input type="text" value={form.grade} onChange={e => setForm(f=>({...f, grade:e.target.value}))}
-                placeholder="e.g. A+"
-                className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"/>
-            </div>
-          </div>
-          <div className="flex gap-3 justify-end pt-2">
-            <button type="button" onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50">
-              Cancel
-            </button>
-            <button type="submit" disabled={loading} className="btn-primary text-sm disabled:opacity-50">
-              {loading ? 'Submitting...' : 'Submit Request'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}

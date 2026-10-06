@@ -75,6 +75,32 @@ export const rejectCertificate = (id, reason = '') =>
 export const revokeCertificate = (id, reason = '') =>
   adminApi.post(`/api/admin/certificates/${id}/revoke`, { reason });
 
+// ── Certificate Batches (payment verification + processing) ──
+export const listAdminBatches = ({ page = 0, size = 20, paymentStatus = '' } = {}) => {
+  const params = new URLSearchParams({ page, size });
+  if (paymentStatus) params.set('paymentStatus', paymentStatus);
+  return adminApi.get(`/api/admin/batches?${params}`);
+};
+
+export const getAdminBatch = (id) =>
+  adminApi.get(`/api/admin/batches/${id}`);
+
+export const verifyBatchPayment = (id, reason = '') =>
+  adminApi.post(`/api/admin/batches/${id}/verify-payment`, { reason });
+
+export const rejectBatchPayment = (id, reason = '') =>
+  adminApi.post(`/api/admin/batches/${id}/reject-payment`, { reason });
+
+export const processBatch = (id) =>
+  adminApi.post(`/api/admin/batches/${id}/process`, {});
+
+export const downloadAdminBatchZip = (id) =>
+  adminApi.get(`/api/admin/batches/${id}/download`, { responseType: 'blob' });
+
+// ── Certificate PDF download (blob via authed client) ─────────
+export const downloadAdminCertificatePdf = (id) =>
+  adminApi.get(`/api/admin/certificates/${id}/download`, { responseType: 'blob' });
+
 // ── Courses ───────────────────────────────────────────────────
 export const listCourses = () =>
   adminApi.get('/api/admin/courses');

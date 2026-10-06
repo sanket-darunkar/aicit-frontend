@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getAdminCertificate, approveCertificate, rejectCertificate, revokeCertificate } from '../../services/adminService.js';
-import { auth } from '../../services/api.js';
+import { getAdminCertificate, approveCertificate, rejectCertificate, revokeCertificate, downloadAdminCertificatePdf } from '../../services/adminService.js';
 
 const STATUS_COLORS = {
   REQUESTED:    'bg-yellow-100 text-yellow-800',
@@ -151,12 +150,8 @@ export default function AdminCertificateDetailPage() {
 
   const handleDownload = async () => {
     try {
-      const token = auth.getAdminToken();
-      const res = await fetch(`/api/admin/certificates/${id}/download`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) { alert('PDF not available.'); return; }
-      const blob = await res.blob();
+      const blob = await downloadAdminCertificatePdf(id);
+      if (!blob || blob.size === 0) { alert('PDF not available.'); return; }
       const url  = URL.createObjectURL(blob);
       const a    = document.createElement('a');
       a.href = url; a.download = `${cert?.certificateNumber || id}.pdf`; a.click();

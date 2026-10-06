@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getStudent } from '../../services/instituteService.js';
-import { auth } from '../../services/api.js';
+import { auth, BASE_URL } from '../../services/api.js';
 
 const STATUS_COLORS = { ACTIVE:'bg-green-100 text-green-800', INACTIVE:'bg-gray-100 text-gray-600', COMPLETED:'bg-blue-100 text-blue-800', DROPPED:'bg-red-100 text-red-800' };
 
@@ -22,7 +22,7 @@ function useAuthPhoto(studentId, hasPhoto) {
     if (!hasPhoto || !studentId) return;
     let objectUrl = null;
     const token = auth.getInstituteToken();
-    fetch(`/api/institute/students/${studentId}/photo`, {
+    fetch(`${BASE_URL}/api/institute/students/${studentId}/photo`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(res => {

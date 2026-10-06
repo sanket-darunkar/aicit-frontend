@@ -4,10 +4,10 @@ import { useInstituteAuth } from '../../contexts/InstituteAuthContext.jsx';
 import { instituteApi } from '../../services/api.js';
 
 const ACTIONS = [
-  { label: 'View Students',     to: '/institute/students',     icon: '🎓', desc: 'Browse and manage enrolled students' },
-  { label: 'Add Student',       to: '/institute/students/new', icon: '➕', desc: 'Enroll a new student' },
-  { label: 'Certificates',      to: '/institute/certificates', icon: '📜', desc: 'View and request certificates' },
-  { label: 'Institute Profile', to: '/institute/profile',      icon: '🏫', desc: 'View your institute details' },
+  { label: 'Apply for Certificate', to: '/institute/batches',      icon: '🧾', desc: 'Single or bulk — pay ₹250 per certificate' },
+  { label: 'Add Student',           to: '/institute/students/new', icon: '➕', desc: 'Enroll a new student' },
+  { label: 'View Students',         to: '/institute/students',     icon: '🎓', desc: 'Browse and manage enrolled students' },
+  { label: 'Issued Certificates',   to: '/institute/certificates', icon: '📜', desc: 'View and download issued certificates' },
 ];
 
 function StatCard({ label, value, icon, loading }) {
@@ -91,9 +91,10 @@ export default function InstituteDashboardPage() {
       {/* Info note */}
       <div className="bg-blue-50 border border-blue-100 rounded-xl p-5">
         <p className="text-sm text-blue-800">
-          <strong>Getting started:</strong> Add your students using the "Add Student" option,
-          then submit certificate requests once they complete their courses.
-          AICIT will process your requests and notify you when certificates are ready to download.
+          <strong>Getting started:</strong> Add your students, then apply for certificates
+          (single or bulk) at ₹250 each. Pay the fee via UPI and submit the UTR reference —
+          AICIT verifies the payment, generates the certificates, and notifies you when the
+          batch is ready to download.
         </p>
       </div>
     </div>

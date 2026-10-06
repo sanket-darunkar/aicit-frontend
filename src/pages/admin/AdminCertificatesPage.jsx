@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { listAdminCertificates, approveCertificate, rejectCertificate, revokeCertificate } from '../../services/adminService.js';
-import { auth } from '../../services/api.js';
+import { listAdminCertificates, approveCertificate, rejectCertificate, revokeCertificate, downloadAdminCertificatePdf } from '../../services/adminService.js';
 
 const STATUS_COLORS = {
   REQUESTED:    'bg-yellow-100 text-yellow-800',
@@ -161,16 +160,14 @@ export default function AdminCertificatesPage() {
   };
 
   const handleDownload = async (id, certNumber) => {
-    const token = auth.getAdminToken();
-    const res = await fetch(`/api/admin/certificates/${id}/download`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    if (!res.ok) { alert('PDF not available.'); return; }
-    const blob = await res.blob();
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href = url; a.download = `${certNumber}.pdf`; a.click();
-    URL.revokeObjectURL(url);
+    try {
+      const blob = await downloadAdminCertificatePdf(id);
+      if (!blob || blob.size === 0) { alert('PDF not available.'); return; }
+      const url = URL.createObjectURL(blob);
+      const a   = document.createElement('a');
+      a.href = url; a.download = `${certNumber}.pdf`; a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) { alert('Download failed: ' + err.message); }
   };
 
   return (

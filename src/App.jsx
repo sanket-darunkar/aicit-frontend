@@ -26,6 +26,7 @@ import AdminDashboardPage       from './pages/admin/AdminDashboardPage.jsx';
 import AdminInstitutesPage      from './pages/admin/AdminInstitutesPage.jsx';
 import AdminInstituteDetailPage from './pages/admin/AdminInstituteDetailPage.jsx';
 import AdminCertificatesPage    from './pages/admin/AdminCertificatesPage.jsx';
+import AdminBatchesPage         from './pages/admin/AdminBatchesPage.jsx';
 import AdminCertificateDetailPage from './pages/admin/AdminCertificateDetailPage.jsx';
 import AdminCoursesPage         from './pages/admin/AdminCoursesPage.jsx';
 import AdminStudentsPage        from './pages/admin/AdminStudentsPage.jsx';
@@ -39,6 +40,7 @@ import InstituteAddStudentPage      from './pages/institute/InstituteAddStudentP
 import InstituteStudentDetailPage   from './pages/institute/InstituteStudentDetailPage.jsx';
 import InstituteStudentEditPage     from './pages/institute/InstituteStudentEditPage.jsx';
 import InstituteCertificatesPage    from './pages/institute/InstituteCertificatesPage.jsx';
+import InstituteBatchesPage         from './pages/institute/InstituteBatchesPage.jsx';
 import InstituteProfilePage         from './pages/institute/InstituteProfilePage.jsx';
 
 // ── Loading fallback ──────────────────────────────────────────
@@ -122,6 +124,8 @@ export default function App() {
               element={<AdminGuard><AdminInstituteDetailPage /></AdminGuard>} />
             <Route path="/admin/students"
               element={<AdminGuard><AdminStudentsPage /></AdminGuard>} />
+            <Route path="/admin/batches"
+              element={<AdminGuard><AdminBatchesPage /></AdminGuard>} />
             <Route path="/admin/certificates"
               element={<AdminGuard><AdminCertificatesPage /></AdminGuard>} />
             <Route path="/admin/certificates/:id"
@@ -144,6 +148,8 @@ export default function App() {
               element={<InstituteGuard><InstituteStudentDetailPage /></InstituteGuard>} />
             <Route path="/institute/students/:id/edit"
               element={<InstituteGuard><InstituteStudentEditPage /></InstituteGuard>} />
+            <Route path="/institute/batches"
+              element={<InstituteGuard><InstituteBatchesPage /></InstituteGuard>} />
             <Route path="/institute/certificates"
               element={<InstituteGuard><InstituteCertificatesPage /></InstituteGuard>} />
             <Route path="/institute/profile"

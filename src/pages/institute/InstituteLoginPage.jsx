@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useInstituteAuth } from '../../contexts/InstituteAuthContext.jsx';
+import { BASE_URL } from '../../services/api.js';
 
 // ── Forgot Password Modal ─────────────────────────────────────
 function ForgotPasswordModal({ onClose }) {
@@ -13,7 +14,7 @@ function ForgotPasswordModal({ onClose }) {
     if (!email.trim()) return;
     setStatus('loading');
     try {
-      const res  = await fetch('/api/public/forgot-password', {
+      const res  = await fetch(`${BASE_URL}/api/public/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim().toLowerCase() }),

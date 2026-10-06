@@ -6,7 +6,7 @@
  */
 import axios from 'axios';
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
+export const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
 // ── Token keys ────────────────────────────────────────────────
 export const ADMIN_TOKEN_KEY     = 'aicit_admin_token';
