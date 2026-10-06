@@ -66,7 +66,7 @@ export default function AdminLoginPage() {
               <label htmlFor="email" className="label">Email Address</label>
               <input id="email" type="email" required autoComplete="email"
                 value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="admin@aicit.org"
+                placeholder="admin@aicit.org.in"
                 className="input" />
             </div>
             <div>

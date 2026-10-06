@@ -73,7 +73,7 @@ function ResultRevoked({ certNumber, t }) {
           Certificate Number: <strong className="text-gray-900 font-mono">{certNumber}</strong>
         </p>
         <p className="text-sm text-gray-500">
-          If you believe this is an error, please contact AICIT at <strong>info@aicit.org</strong>.
+          If you believe this is an error, please contact AICIT at <strong>info@aicit.org.in</strong>.
         </p>
       </div>
     </div>

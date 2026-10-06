@@ -9,8 +9,8 @@ export const SITE = {
   fullName:    'All India Council for Information Technology',
   tagline:     'Empowering Institutes. Certifying Futures.',
   description: 'A centralized education and certificate management platform for authorized institutes across India.',
-  url:         'https://aicit.org',               // [PENDING – update with actual domain]
-  email:       'info@aicit.org',                  // [PENDING]
+  url:         'https://aicit.org.in',            // [PENDING – update with actual domain]
+  email:       'info@aicit.org.in',
   phone:       '+91 8888723485',                  // [PENDING – update with AICIT contact]
   address: {
     line1:  'Lok Kalyan Society, Anmol Nagar',
@@ -61,9 +61,9 @@ export const PAYMENT = {
 // ── Announcement ticker messages ─────────────────────────────
 export const ANNOUNCEMENTS = [
   'Institute Registration Open – Apply Now to become an Authorized AICIT Partner',
-  'Certificate Verification available online – Visit aicit.org/verify',
+  'Certificate Verification available online – Visit aicit.org.in/verify',
   'New Courses added – Graphic Designing, Advanced Tally Prime with GST',
-  'Contact us for institute affiliation: info@aicit.org',
+  'Contact us for institute affiliation: info@aicit.org.in',
 ];
 
 // ── Navigation links ──────────────────────────────────────────

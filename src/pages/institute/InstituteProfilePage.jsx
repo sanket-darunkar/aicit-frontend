@@ -213,7 +213,7 @@ export default function InstituteProfilePage() {
       <ChangePasswordForm />
 
       <div className="bg-primary-50 border border-primary-100 rounded-xl p-4 text-sm text-primary-800">
-        To update institute information, please contact AICIT admin at <strong>info@aicit.org</strong>
+        To update institute information, please contact AICIT admin at <strong>admin@aicit.org.in</strong>
       </div>
     </div>
   );
