@@ -31,15 +31,50 @@ function LanguageSwitcher() {
   );
 }
 
+// ── Government Recognition Top Bar ────────────────────────────
+function GovtRecognitionBar() {
+  return (
+    <div className="bg-[#0b1838]">
+      {/* Top tricolor hairline */}
+      <div className="flex h-[3px]">
+        <div className="flex-1 bg-[#FF9933]" />
+        <div className="flex-1 bg-white" />
+        <div className="flex-1 bg-[#138808]" />
+      </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-center gap-2 py-2 text-center">
+          <span className="text-base leading-none">🇮🇳</span>
+          <span className="text-xs sm:text-sm font-semibold text-white tracking-wide">
+            Recognised by the
+            <span className="text-gold-400 font-bold"> Government of India</span>
+            <span className="hidden sm:inline"> — Ministry of Corporate Affairs</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Announcement Ticker ───────────────────────────────────────
 function AnnouncementTicker() {
-  const text = ANNOUNCEMENTS.join('   ●   ');
+  // Join items with a gold bullet separator
+  const items = ANNOUNCEMENTS;
+  const Row = () => (
+    <span className="ticker-content text-xs font-medium tracking-wide text-white px-4">
+      {items.map((item, i) => (
+        <span key={i} className="inline-flex items-center">
+          <span className="text-gold-400 mx-4">●</span>
+          {item}
+        </span>
+      ))}
+    </span>
+  );
   return (
-    <div className="bg-primary-950 text-white py-1.5 overflow-hidden border-b border-primary-800/50">
-      <div className="ticker-wrap">
-        <div className="ticker-content text-xs font-medium tracking-wide">
-          {text}&nbsp;&nbsp;&nbsp;●&nbsp;&nbsp;&nbsp;{text}
-        </div>
+    <div className="bg-primary-950 text-white py-2 overflow-hidden border-b border-primary-800/50">
+      <div className="ticker-wrap" aria-label="Announcements">
+        {/* Two identical rows for a seamless, gapless loop */}
+        <Row />
+        <Row />
       </div>
     </div>
   );
@@ -232,6 +267,9 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full">
+      {/* Government recognition line */}
+      <GovtRecognitionBar />
+
       {/* Ticker */}
       <AnnouncementTicker />
 

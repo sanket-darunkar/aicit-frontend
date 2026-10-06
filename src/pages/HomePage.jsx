@@ -1,5 +1,6 @@
 import React from 'react';
 import Hero                    from '../components/sections/Hero.jsx';
+import TrustBanner            from '../components/sections/TrustBanner.jsx';
 import Features                from '../components/sections/Features.jsx';
 import WhyChooseUs             from '../components/sections/WhyChooseUs.jsx';
 import AboutSection            from '../components/sections/AboutSection.jsx';
@@ -12,6 +13,7 @@ export default function HomePage() {
   return (
     <>
       <Hero />
+      <TrustBanner />
       <Features />
       <WhyChooseUs />
       <AboutSection />

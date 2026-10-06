@@ -30,7 +30,6 @@ export const SITE = {
 
 // ── Announcement ticker messages ─────────────────────────────
 export const ANNOUNCEMENTS = [
-  'Certificate in Computer Based English Typing – Last Date 15/06/2024',
   'Institute Registration Open – Apply Now to become an Authorized AICIT Partner',
   'Certificate Verification available online – Visit aicit.org/verify',
   'New Courses added – Graphic Designing, Advanced Tally Prime with GST',
