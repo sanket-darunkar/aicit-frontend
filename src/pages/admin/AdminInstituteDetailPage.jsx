@@ -28,31 +28,37 @@ function ConfirmModal({ title, message, requireReason = false, reasonLabel = 'Re
                         confirmLabel = 'Confirm', confirmClass = 'bg-red-600 hover:bg-red-700',
                         onConfirm, onClose }) {
   const [reason, setReason] = useState('');
+  const [busy, setBusy]     = useState(false);
+  const handleConfirm = async () => {
+    if (busy) return;              // prevent double-click double-submit
+    setBusy(true);
+    try { await onConfirm(reason); } finally { setBusy(false); }
+  };
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+      <div className="bg-white rounded-3xl shadow-hero max-w-md w-full p-6 space-y-4">
         <h3 className="text-lg font-heading font-bold text-primary-900">{title}</h3>
         <p className="text-sm text-gray-600">{message}</p>
         {requireReason !== false && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{reasonLabel}</label>
+            <label className="label">{reasonLabel}</label>
             <textarea
               rows={3}
               value={reason}
               onChange={e => setReason(e.target.value)}
               placeholder="Enter reason…"
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+              className="input resize-none"
             />
           </div>
         )}
         <div className="flex gap-3 justify-end pt-1">
-          <button onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50">
+          <button onClick={onClose} disabled={busy}
+            className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-xl hover:bg-surface-50 disabled:opacity-50">
             Cancel
           </button>
-          <button onClick={() => onConfirm(reason)}
-            className={`px-4 py-2 text-sm font-semibold text-white rounded-lg transition-colors ${confirmClass}`}>
-            {confirmLabel}
+          <button onClick={handleConfirm} disabled={busy}
+            className={`px-4 py-2 text-sm font-semibold text-white rounded-xl transition-colors disabled:opacity-60 ${confirmClass}`}>
+            {busy ? 'Please wait…' : confirmLabel}
           </button>
         </div>
       </div>
@@ -64,23 +70,39 @@ function ConfirmModal({ title, message, requireReason = false, reasonLabel = 'Re
 function PasswordResetModal({ password, email, onClose }) {
   const [copied, setCopied] = useState(false);
   const copy = () => {
-    navigator.clipboard.writeText(password).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
+    navigator.clipboard?.writeText(password).then(() => {
+      setCopied(true); setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {});
   };
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4">
-        <h3 className="text-lg font-heading font-bold text-primary-900">🔑 Password Reset</h3>
-        <p className="text-sm text-gray-600">A new password has been generated for <strong>{email}</strong>. Please share it securely with the institute.</p>
-        <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
-          <span className="font-mono text-sm font-bold text-primary-900 flex-1 select-all">{password}</span>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+      <div className="bg-white rounded-3xl shadow-hero max-w-md w-full p-6 space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-2xl bg-indigo-100 flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/>
+            </svg>
+          </div>
+          <h3 className="text-lg font-heading font-bold text-primary-900">Password Reset</h3>
+        </div>
+        <p className="text-sm text-gray-600">
+          A new password has been generated for <strong>{email}</strong>. Share it securely with the institute.
+        </p>
+        <div className="flex items-center gap-2 bg-surface-50 border border-gray-200 rounded-xl px-4 py-3">
+          <span className="font-mono text-base font-bold text-primary-900 flex-1 select-all tracking-wide">{password}</span>
           <button onClick={copy}
-            className="text-xs font-medium text-primary-600 hover:text-primary-800 transition-colors">
+            className="px-3 py-1.5 rounded-lg bg-primary-100 text-xs font-semibold text-primary-700 hover:bg-primary-200 transition-colors flex-shrink-0">
             {copied ? '✓ Copied' : 'Copy'}
           </button>
         </div>
-        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3">
-          ⚠️ This password will not be shown again. Copy it now.
-        </p>
+        <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+          <svg className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+          </svg>
+          <p className="text-xs text-amber-800">
+            This password won't be shown again. Copy it now. The institute has also been emailed these credentials.
+          </p>
+        </div>
         <div className="flex justify-end">
           <button onClick={onClose} className="btn-primary text-sm">Done</button>
         </div>
