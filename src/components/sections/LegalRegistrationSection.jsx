@@ -50,14 +50,36 @@ function CardRow({ label, value }) {
 // ── Government Registration Card ───────────────────────────────
 function GovtCard({ reg }) {
   const [expanded, setExpanded] = useState(false);
+  const isHighlight = reg.highlight;
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-card-hover transition-shadow overflow-hidden">
+    <div className={`bg-white rounded-2xl shadow-sm hover:shadow-card-hover transition-shadow overflow-hidden
+      ${isHighlight ? 'border-2 border-gold-400 ring-2 ring-gold-100' : 'border border-gray-100'}`}>
+      {/* Indian tricolor accent strip for highlighted (Govt of India) card */}
+      {isHighlight && (
+        <div className="flex h-1.5">
+          <div className="flex-1 bg-[#FF9933]" />
+          <div className="flex-1 bg-white border-y border-gray-100" />
+          <div className="flex-1 bg-[#138808]" />
+        </div>
+      )}
       {/* Header */}
-      <div className="bg-gradient-to-r from-primary-800 to-primary-700 px-6 py-4 flex items-center gap-3">
+      <div className={`px-6 py-4 flex items-center gap-3
+        ${isHighlight
+          ? 'bg-gradient-to-r from-primary-900 via-primary-800 to-primary-900'
+          : 'bg-gradient-to-r from-primary-800 to-primary-700'}`}>
         <span className="text-3xl flex-shrink-0">{reg.icon}</span>
         <div className="flex-1 min-w-0">
-          <h3 className="text-white font-heading font-bold text-base">{reg.title}</h3>
-          <p className="text-blue-200 text-xs mt-0.5 truncate">{reg.subtitle}</p>
+          <h3 className="text-white font-heading font-bold text-base flex items-center gap-2">
+            {reg.title}
+            {isHighlight && (
+              <span className="px-2 py-0.5 rounded-full bg-gold-400 text-primary-900 text-[9px] font-extrabold uppercase tracking-wide">
+                Govt. Recognised
+              </span>
+            )}
+          </h3>
+          <p className={`text-xs mt-0.5 truncate ${isHighlight ? 'text-gold-200 font-semibold' : 'text-blue-200'}`}>
+            {reg.subtitle}
+          </p>
         </div>
         <StatusBadge status={reg.status} />
       </div>
@@ -170,8 +192,8 @@ function CertCard({ cert }) {
         )}
       </div>
 
-      {/* Footer */}
-      {cert.verificationUrl && !isPlanned && (
+      {/* Footer — verify link only when explicitly enabled (showVerify !== false) */}
+      {cert.verificationUrl && !isPlanned && cert.showVerify !== false && (
         <div className="px-6 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
           <span className="text-xs text-gray-400">Issuer website</span>
           <a href={cert.verificationUrl} target="_blank" rel="noopener noreferrer"
@@ -184,20 +206,22 @@ function CertCard({ cert }) {
   );
 }
 
-// ── Future certification placeholder card ──────────────────────
+// ── Additional certification card ──────────────────────────────
 function FutureCard({ item }) {
+  const isActive = item.status === CERT_STATUS.ACTIVE;
   return (
-    <div className="bg-white rounded-2xl border border-dashed border-gray-200 shadow-sm p-5 flex items-start gap-4 opacity-80">
-      <span className="text-3xl flex-shrink-0 opacity-50">{item.icon}</span>
+    <div className={`bg-white rounded-2xl border shadow-sm p-5 flex items-start gap-4
+      ${isActive ? 'border-trust-100 hover:shadow-card-hover transition-shadow' : 'border-dashed border-gray-200 opacity-80'}`}>
+      <span className={`text-3xl flex-shrink-0 ${isActive ? '' : 'opacity-50'}`}>{item.icon}</span>
       <div className="flex-1">
         <div className="flex items-start justify-between gap-2 flex-wrap">
           <div>
-            <h4 className="text-sm font-heading font-bold text-gray-700">{item.name}</h4>
+            <h4 className={`text-sm font-heading font-bold ${isActive ? 'text-primary-900' : 'text-gray-700'}`}>{item.name}</h4>
             <p className="text-xs text-gray-400 mt-0.5">{item.fullName}</p>
           </div>
           <StatusBadge status={item.status} />
         </div>
-        <p className="text-xs text-gray-400 mt-2">{item.statusNote}</p>
+        <p className={`text-xs mt-2 ${isActive ? 'text-gray-600' : 'text-gray-400'}`}>{item.statusNote}</p>
       </div>
     </div>
   );
@@ -302,13 +326,12 @@ export default function LegalRegistrationSection() {
           </div>
         </div>
 
-        {/* Future Certifications */}
+        {/* Additional Certifications & Accreditations */}
         <div>
           <div className="flex items-center gap-3 mb-6">
-            <span className="text-2xl">🔮</span>
-            <h3 className="text-lg font-heading font-bold text-gray-500">Future Certifications</h3>
+            <span className="text-2xl">🏅</span>
+            <h3 className="text-lg font-heading font-bold text-primary-900">Additional Certifications &amp; Accreditations</h3>
             <span className="flex-1 h-px bg-gray-200" />
-            <span className="text-xs text-gray-400 italic">None of these are currently active</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {FUTURE_CERTIFICATIONS.map(item => (

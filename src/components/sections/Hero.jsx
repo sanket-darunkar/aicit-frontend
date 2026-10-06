@@ -163,6 +163,15 @@ export default function Hero() {
                 <span className="text-sm">🏛️</span>
                 <span className="text-xs text-blue-300 font-medium">MSME Udyam</span>
               </div>
+              {/* Government of India — Ministry of Corporate Affairs */}
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg
+                              bg-gradient-to-r from-gold-500/20 to-transparent border border-gold-400/40">
+                <span className="text-sm">🇮🇳</span>
+                <div className="leading-tight">
+                  <div className="text-[9px] text-gold-300 font-bold uppercase tracking-wide">Government of India</div>
+                  <div className="text-[11px] text-gold-100 font-semibold">Ministry of Corporate Affairs</div>
+                </div>
+              </div>
             </div>
           </div>
 

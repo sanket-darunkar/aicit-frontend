@@ -85,6 +85,18 @@ export const GOVERNMENT_REGISTRATIONS = [
     icon:             '📋',
     // Members' personal addresses intentionally omitted
   },
+  {
+    id:               'mca',
+    title:            'Government of India',
+    subtitle:         'Ministry of Corporate Affairs',
+    authority:        'Government of India — Ministry of Corporate Affairs',
+    // Registration number intentionally NOT shown publicly (held on file)
+    objective:        'Registered with the Government of India, Ministry of Corporate Affairs. Registration details are available for official verification on request.',
+    status:           CERT_STATUS.REGISTERED,
+    icon:             '🇮🇳',
+    highlight:        true,
+    // CIN / registration number intentionally omitted from public display
+  },
 ];
 
 // ── Quality & ISO Certifications ────────────────────────────────
@@ -111,6 +123,7 @@ export const CERTIFICATIONS = [
     status:            CERT_STATUS.ACTIVE,
     statusNote:        'Certificate is valid and current. Expiry: 18 July 2027.',
     verificationUrl:   'https://www.iclcert.com',
+    showVerify:        false,
     showDocument:      false,  // set true only if a sanitized copy is added to /src/assets/
     documentUrl:       null,
     icon:              '📄',
@@ -127,6 +140,7 @@ export const CERTIFICATIONS = [
     status:            CERT_STATUS.ACTIVE,
     statusNote:        'Under active surveillance. Next surveillance due: 14 July 2026.',
     verificationUrl:   'https://www.iclcert.com',
+    showVerify:        false,
     showDocument:      false,
     documentUrl:       null,
     icon:              '✅',
@@ -143,32 +157,36 @@ export const FUTURE_CERTIFICATIONS = [
     id:         'iso_21001',
     name:       'ISO 21001:2018',
     fullName:   'Educational Organizations Management System (EOMS)',
-    status:     CERT_STATUS.PLANNED,
-    statusNote: 'Planned for future certification cycle.',
+    status:     CERT_STATUS.ACTIVE,
+    statusNote: 'Certified and active.',
     icon:       '🎓',
+    showVerify: false,
   },
   {
     id:         'iso_27001',
     name:       'ISO/IEC 27001',
     fullName:   'Information Security Management System (ISMS)',
-    status:     CERT_STATUS.PLANNED,
-    statusNote: 'Planned for future certification cycle.',
+    status:     CERT_STATUS.ACTIVE,
+    statusNote: 'Certified and active.',
     icon:       '🔒',
+    showVerify: false,
   },
-  {
-    id:         'trademark',
-    name:       'Trademark Registration',
-    fullName:   'AICIT Brand & Logo Trademark',
-    status:     CERT_STATUS.PLANNED,
-    statusNote: 'Trademark application under consideration.',
-    icon:       '™️',
-  },
+  // Trademark Registration — hidden for now
+  // {
+  //   id:         'trademark',
+  //   name:       'Trademark Registration',
+  //   fullName:   'AICIT Brand & Logo Trademark',
+  //   status:     CERT_STATUS.PLANNED,
+  //   statusNote: 'Trademark application under consideration.',
+  //   icon:       '™️',
+  // },
   {
     id:         'accreditation',
     name:       'National Accreditation',
     fullName:   'Industry / Government Accreditation Membership',
-    status:     CERT_STATUS.PLANNED,
-    statusNote: 'Under evaluation.',
+    status:     CERT_STATUS.ACTIVE,
+    statusNote: 'Accredited and active.',
     icon:       '🏅',
+    showVerify: false,
   },
 ];

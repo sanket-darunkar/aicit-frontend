@@ -96,6 +96,17 @@ export default function Footer() {
                 <div className="text-xs text-blue-300 font-medium">Udyam Registered</div>
               </div>
             </div>
+
+            {/* Government of India — Ministry of Corporate Affairs */}
+            <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg
+                            bg-gradient-to-r from-gold-500/15 to-gold-400/5 border border-gold-500/30
+                            hover:border-gold-400/60 transition-colors">
+              <span className="text-base">🇮🇳</span>
+              <div className="leading-tight">
+                <div className="text-[10px] text-gold-300 font-bold uppercase tracking-wider">Government of India</div>
+                <div className="text-xs text-gold-100 font-semibold">Ministry of Corporate Affairs</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
