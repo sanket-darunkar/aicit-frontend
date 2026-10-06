@@ -2,7 +2,7 @@
 
 Place the bank-issued static UPI QR image here as:
 
-    public/payment/aicitQR.jpeg
+    public/payment/MainAICITQR.jpeg
 
 This exact image is shown on the certificate payment screen (single + bulk).
 The file path is configured by `VITE_UPI_QR_IMAGE` (see `.env.production`) and

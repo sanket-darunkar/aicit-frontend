@@ -55,7 +55,7 @@ export const PAYMENT = {
   // When present it is shown as-is (a bank static QR has NO amount embedded,
   // so the payer types the amount in). If the file is missing or unset, the
   // panel generates the QR dynamically from the VPA + amount instead.
-  staticQrImage:  env.VITE_UPI_QR_IMAGE   ?? '/payment/aicitQR.jpeg',
+  staticQrImage:  env.VITE_UPI_QR_IMAGE   ?? '/payment/MainAICITQR.jpeg',
 };
 
 // ── Announcement ticker messages ─────────────────────────────
