@@ -114,8 +114,8 @@ export default function InstituteLoginPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex flex-col items-center gap-3">
-            <img src="/logos/AICIT logo.jpeg" alt="AICIT"
-              className="h-16 w-16 rounded-2xl object-contain bg-white p-1.5 shadow-xl"
+            <img src="/logos/AICIT-logo.png" alt="AICIT"
+              className="h-16 w-16 rounded-2xl object-contain p-1.5"
               onError={e => { e.target.style.display='none'; }}
             />
             <div>

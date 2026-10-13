@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useParams } from 'react-router-dom';
 import { useLang } from '../i18n/LanguageContext.jsx';
 import { BASE_URL } from '../services/api.js';
 
@@ -118,15 +118,18 @@ function ResultNotFound({ certNumber, t }) {
 
 export default function CertificateVerificationPage() {
   const { t } = useLang();
+  const { certNumber: certParam } = useParams();      // QR / direct link: /verify/:certNumber
   const [searchParams, setSearchParams] = useSearchParams();
-  const [certInput, setCertInput] = useState(searchParams.get('cert') || '');
+  // Accept both the path param (QR codes) and the legacy ?cert= query param.
+  const initialCert = certParam || searchParams.get('cert') || '';
+  const [certInput, setCertInput] = useState(initialCert);
   const [status, setStatus]       = useState('idle');
   const [result, setResult]       = useState(null);
   const [errorMsg, setErrorMsg]   = useState('');
 
   useEffect(() => {
-    const cert = searchParams.get('cert');
-    if (cert) { setCertInput(cert); handleVerify(cert); }
+    const cert = certParam || searchParams.get('cert');
+    if (cert) { setCertInput(cert.toUpperCase()); handleVerify(cert); }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

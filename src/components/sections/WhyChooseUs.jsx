@@ -61,8 +61,8 @@ export default function WhyChooseUs() {
             </p>
             {/* Logo trust display */}
             <div className="flex items-center gap-4">
-              <img src="/logos/AICIT logo.jpeg" alt="AICIT"
-                className="h-16 w-16 rounded-2xl object-contain bg-white border border-gray-100 shadow-card p-1"
+              <img src="/logos/AICIT-logo.png" alt="AICIT"
+                className="h-16 w-16 rounded-2xl object-contain p-1"
                 onError={e => { e.target.style.display='none'; }}
               />
               <div>

@@ -91,9 +91,9 @@ function SidebarContent({ onClose }) {
       <div className="px-5 py-5 border-b border-primary-800/60">
         <Link to="/admin/dashboard" onClick={onClose}
           className="flex items-center gap-3 group">
-          <img src="/logos/AICIT logo.jpeg" alt="AICIT"
-            className="h-9 w-9 rounded-xl object-contain bg-white p-0.5 shadow-card
-                       group-hover:shadow-card-hover transition-shadow"
+          <img src="/logos/AICIT-logo.png" alt="AICIT"
+            className="h-9 w-9 rounded-xl object-contain p-0.5
+                       transition-shadow"
             onError={e => { e.target.style.display='none'; }}
           />
           <div>

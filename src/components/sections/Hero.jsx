@@ -181,11 +181,11 @@ export default function Hero() {
             <div className="relative">
               <div className="absolute inset-0 bg-gold-500/20 rounded-3xl blur-3xl" />
               <div className="relative glass rounded-3xl p-8 text-center border border-white/20">
-                <img src="/logos/AICIT logo.jpeg" alt="AICIT"
-                  className="h-24 w-24 mx-auto rounded-2xl object-contain bg-white p-2 shadow-xl mb-5"
+                <img src="/logos/AICIT-logo.png" alt="AICIT"
+                  className="h-24 w-24 mx-auto rounded-2xl object-contain p-2 mb-5"
                   onError={e => {
                     e.target.replaceWith(Object.assign(document.createElement('div'), {
-                      className: 'h-24 w-24 mx-auto rounded-2xl bg-white flex items-center justify-center mb-5',
+                      className: 'h-24 w-24 mx-auto rounded-2xl flex items-center justify-center mb-5',
                       innerHTML: '<span style="font-size:2rem;font-weight:900;color:#1e3a8a">AICIT</span>'
                     }));
                   }}

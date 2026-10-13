@@ -119,8 +119,8 @@ export default function Footer() {
           <div className="lg:col-span-1">
             {/* Logo */}
             <div className="flex items-center gap-3 mb-5">
-              <img src="/logos/AICIT logo.jpeg" alt="AICIT"
-                className="h-12 w-12 rounded-xl object-contain bg-white p-1 shadow-card"
+              <img src="/logos/AICIT-logo.png" alt="AICIT"
+                className="h-12 w-12 rounded-xl object-contain p-1"
                 onError={e => { e.target.style.display='none'; }}
               />
               <div>

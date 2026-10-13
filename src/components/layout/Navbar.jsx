@@ -85,10 +85,10 @@ function Logo() {
   return (
     <Link to="/" className="flex items-center gap-3 flex-shrink-0 group" aria-label="AICIT Home">
       <img
-        src="/logos/AICIT logo.jpeg"
+        src="/logos/AICIT-logo.png"
         alt="AICIT Logo"
-        className="h-10 w-10 rounded-lg object-contain bg-white p-0.5 shadow-xs
-                   group-hover:shadow-card transition-shadow"
+        className="h-10 w-10 rounded-lg object-contain p-0.5
+                   transition-shadow"
         onError={(e) => { e.target.style.display = 'none'; }}
       />
       <div className="flex flex-col leading-none">
