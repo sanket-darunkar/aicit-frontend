@@ -99,9 +99,41 @@ export function parseMarks(marks) {
   return { raw, obtained: m[1], total: m[2] };
 }
 
-/** Public assets used across both certificate formats. */
+/** Public assets used across both certificate formats (all exist in /public/logos). */
 export const CERT_ASSETS = {
-  logo: '/logos/AICIT-logo.png',
+  logo:  '/logos/AICIT-logo.png',
+  iso:   '/logos/certificado-iso-9001-logo-png_seeklogo-255202.png',
+  egac:  '/logos/EGAC.jpeg',
+  ncs:   '/logos/national-career-service-ncs-national-career-service-.jpg',
   sign1: '/logos/sign1.png',
   sign2: '/logos/sign2.png',
 };
+
+/** The brand tagline shown on the navy ribbon of both certificates. */
+export const RIBBON_TAGLINE = ['SKILLS', 'KNOWLEDGE', 'OPPORTUNITY', 'A BRIGHTER', 'TOMORROW'];
+
+/** Shared certificate colour palette (deep navy, gold, ivory). */
+export const CERT_COLORS = {
+  NAVY:   '#0b1b40',
+  NAVY_2: '#132a5e',
+  GOLD:   '#c9a24a',
+  GOLD_LT:'#e7c877',
+  IVORY:  '#fbf7ec',
+};
+
+/**
+ * Split the ATC / institute name into a display name + location line when the
+ * backend encodes them together (e.g. "Master Computer Academy, Nagpur").
+ * Prefers explicit cert fields when the backend provides them.
+ */
+export function parseAtc(cert) {
+  const name = clean(cert?.instituteName);
+  const explicitCity = clean(cert?.instituteCity) || clean(cert?.centreLocation);
+  if (!name) return { name: null, location: explicitCity };
+  if (explicitCity) return { name, location: explicitCity };
+  const idx = name.lastIndexOf(',');
+  if (idx > 0) {
+    return { name: name.slice(0, idx).trim(), location: name.slice(idx + 1).trim() };
+  }
+  return { name, location: null };
+}

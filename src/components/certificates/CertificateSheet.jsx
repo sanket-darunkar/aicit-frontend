@@ -1,248 +1,214 @@
 import React from 'react';
 import { SITE } from '../../config/siteConfig.js';
-import { CERT_ASSETS, clean, formatDate, parseMarks } from './certificateUtils.js';
+import { CERT_ASSETS, CERT_COLORS, clean, formatDate, parseMarks, parseAtc } from './certificateUtils.js';
+import {
+  GoldFrame, LeftRibbon, Masthead, GoldDivider, PhotoFrame,
+} from './CertificateChrome.jsx';
 
-/**
- * Decorative gold corner flourish (SVG) — restrained, symmetric, print-safe.
- * Rotated per corner by the caller.
- */
-function Corner({ className = '', rotate = 0 }) {
+const { NAVY, GOLD, GOLD_LT } = CERT_COLORS;
+
+/** Circular gold-ring icon used in the stats strip. */
+function StatIcon({ children }) {
   return (
-    <svg
-      className={className}
-      style={{ transform: `rotate(${rotate}deg)` }}
-      width="90" height="90" viewBox="0 0 90 90" fill="none"
-      aria-hidden="true"
-    >
-      <path d="M4 86V26C4 13.85 13.85 4 26 4h60" stroke="#c9a24a" strokeWidth="2.5" fill="none" />
-      <path d="M12 86V30C12 20.06 20.06 12 30 12h56" stroke="#1e3a8a" strokeWidth="1.2" fill="none" opacity="0.6" />
-      <circle cx="22" cy="22" r="4.5" fill="#c9a24a" />
-    </svg>
+    <div style={{
+      width: 34, height: 34, borderRadius: '50%', background: NAVY,
+      border: `2px solid ${GOLD}`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+      color: GOLD_LT, flexShrink: 0,
+    }}>{children}</div>
   );
 }
 
-function SealBadge() {
-  return (
-    <div className="aicit-cert-seal" aria-label="Official AICIT seal" style={{ width: 96, height: 96, position: 'relative' }}>
-      <svg width="96" height="96" viewBox="0 0 96 96" fill="none">
-        <circle cx="48" cy="48" r="46" fill="none" stroke="#c9a24a" strokeWidth="2" />
-        <circle cx="48" cy="48" r="38" fill="none" stroke="#1e3a8a" strokeWidth="1" strokeDasharray="2 2.5" />
-        <circle cx="48" cy="48" r="30" fill="#0f1f4e" />
-        <defs>
-          <path id="sealArcTop" d="M48 10 a38 38 0 0 1 0 76" />
-        </defs>
-        <text fill="#1e3a8a" fontSize="7.5" fontWeight="700" letterSpacing="1.5" fontFamily="Poppins, sans-serif">
-          <textPath href="#sealArcTop" startOffset="4%">ALL INDIA COUNCIL FOR INFORMATION TECHNOLOGY</textPath>
-        </text>
-      </svg>
-      <div style={{
-        position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center', color: '#fff', textAlign: 'center',
-      }}>
-        <span className="aicit-cert-heading" style={{ fontSize: 15, fontWeight: 800, lineHeight: 1, letterSpacing: '1px' }}>AICIT</span>
-        <span style={{ fontSize: 6.5, letterSpacing: '1px', marginTop: 2, color: '#c9a24a', fontWeight: 700 }}>OFFICIAL SEAL</span>
-      </div>
-    </div>
-  );
-}
-
-/** A single detail "chip" for course / grade / marks etc. Hidden when empty. */
-function DetailChip({ label, value }) {
+function Stat({ icon, label, value }) {
   if (!value) return null;
   return (
-    <div style={{ textAlign: 'center', minWidth: 0 }}>
-      <div style={{
-        fontSize: 8.5, letterSpacing: '2px', textTransform: 'uppercase',
-        color: '#8a7a4a', fontWeight: 700, marginBottom: 3,
-      }}>{label}</div>
-      <div className="aicit-cert-heading" style={{
-        fontSize: 14, fontWeight: 700, color: '#0f1f4e', lineHeight: 1.15,
-      }}>{value}</div>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, justifyContent: 'center' }}>
+      <StatIcon>{icon}</StatIcon>
+      <div style={{ lineHeight: 1.15 }}>
+        <div style={{ fontSize: 8.5, color: '#5a6b8c', fontWeight: 600 }}>{label}</div>
+        <div className="aicit-cert-heading" style={{ fontSize: 13, fontWeight: 800, color: NAVY }}>{value}</div>
+      </div>
     </div>
   );
 }
 
-function SignatureBlock({ img, name, title }) {
+function MetaRow({ icon, label, value, valueStrong }) {
+  if (!value) return null;
   return (
-    <div style={{ textAlign: 'center', minWidth: 150 }}>
-      <div style={{ height: 42, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
-        {img && (
-          <img src={img} alt="" style={{ maxHeight: 40, maxWidth: 150, objectFit: 'contain' }}
-            onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-        )}
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 7, marginBottom: 5 }}>
+      <span style={{ color: NAVY, flexShrink: 0, marginTop: 1 }}>{icon}</span>
+      <div style={{ lineHeight: 1.2 }}>
+        <div style={{ fontSize: 8, color: '#5a6b8c', fontWeight: 600 }}>{label}</div>
+        <div className="aicit-cert-heading" style={{ fontSize: valueStrong ? 11.5 : 10.5, fontWeight: 700, color: NAVY, fontFamily: 'JetBrains Mono, monospace' }}>{value}</div>
       </div>
-      <div style={{ borderTop: '1.5px solid #0f1f4e', margin: '0 10px', paddingTop: 5 }}>
-        <div className="aicit-cert-heading" style={{ fontSize: 11, fontWeight: 700, color: '#0f1f4e' }}>
-          {name}
-        </div>
-        <div style={{ fontSize: 8.5, letterSpacing: '1px', textTransform: 'uppercase', color: '#8a7a4a', fontWeight: 600, marginTop: 1 }}>
-          {title}
-        </div>
+    </div>
+  );
+}
+
+function SignatureCol({ img, caption }) {
+  return (
+    <div style={{ textAlign: 'center', flex: 1 }}>
+      <div style={{ height: 34, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+        {img && <img src={img} alt="" style={{ maxHeight: 32, maxWidth: 130, objectFit: 'contain' }}
+          onError={(e) => { e.currentTarget.style.display = 'none'; }} />}
+      </div>
+      <div style={{ borderTop: `1.5px solid ${NAVY}`, margin: '0 8px', paddingTop: 4 }}>
+        {caption.map((line, i) => (
+          <div key={i} style={{ fontSize: 8, fontWeight: i === 0 ? 700 : 500, lineHeight: 1.3, color: i === 0 ? NAVY : '#475569' }}>
+            {line}
+          </div>
+        ))}
       </div>
     </div>
   );
 }
 
 /**
- * Premium "Certificate of Achievement" (normal) certificate — A4 landscape.
- * Every data value is pulled from the real certificate object; optional
- * fields that are absent are simply not rendered. No fabricated data.
- *
- * props.cert fields used (all optional except handled gracefully):
- *   certificateNumber, studentName, courseName, instituteName,
- *   marks, grade, issueDate
- * props.photoUrl    – object URL of the student photo (or null → placeholder)
- * props.qrDataUrl   – data URL of the real /verify QR (or null → hidden)
+ * AICIT "Certificate of Achievement" — portrait A4, matching reference 1.
+ * All values come from the real certificate record; absent optional fields
+ * are hidden. No fabricated data, accreditation, or signatures.
  */
 export default function CertificateSheet({ cert = {}, photoUrl = null, qrDataUrl = null }) {
   const studentName = clean(cert.studentName) || '—';
   const courseName  = clean(cert.courseName);
-  const institute   = clean(cert.instituteName);
   const certNumber  = clean(cert.certificateNumber);
+  const studentId   = clean(cert.studentId) || clean(cert.enrollmentNumber);
   const grade       = clean(cert.grade);
+  const duration    = clean(cert.courseDuration) || clean(cert.duration);
   const issueDate   = formatDate(cert.issueDate);
   const marks       = parseMarks(cert.marks);
-  const marksLabel  = marks.obtained && marks.total
-    ? `${marks.obtained} / ${marks.total}`
-    : marks.raw;
+  const marksLabel  = marks.obtained && marks.total ? `${marks.obtained} / ${marks.total}` : marks.raw;
+  const atc         = parseAtc(cert);
 
   return (
     <div className="aicit-cert-sheet">
-      {/* Outer navy frame */}
-      <div style={{ position: 'absolute', inset: '6mm', border: '2.5px solid #0f1f4e' }} />
-      {/* Inner gold frame with guilloche pattern band */}
-      <div className="aicit-cert-guilloche"
-        style={{ position: 'absolute', inset: '9mm', border: '1px solid #c9a24a' }} />
-      <div style={{ position: 'absolute', inset: '11mm', border: '0.75px solid rgba(15,31,78,0.25)' }} />
+      <GoldFrame />
 
-      {/* Gold corners */}
-      <div style={{ position: 'absolute', top: '10mm', left: '10mm' }}><Corner rotate={0} /></div>
-      <div style={{ position: 'absolute', top: '10mm', right: '10mm' }}><Corner rotate={90} /></div>
-      <div style={{ position: 'absolute', bottom: '10mm', right: '10mm' }}><Corner rotate={180} /></div>
-      <div style={{ position: 'absolute', bottom: '10mm', left: '10mm' }}><Corner rotate={270} /></div>
-
-      {/* Watermark seal */}
-      <img src={CERT_ASSETS.logo} alt="" aria-hidden="true" className="aicit-cert-watermark"
-        style={{ position: 'absolute', top: '50%', left: '50%', width: '95mm', transform: 'translate(-50%,-50%)' }}
+      {/* Globe watermark */}
+      <img src={CERT_ASSETS.ncs} alt="" aria-hidden="true" className="aicit-cert-watermark"
+        style={{ position: 'absolute', top: '46%', left: '52%', width: '120mm', transform: 'translate(-50%,-50%)', mixBlendMode: 'multiply' }}
         onError={(e) => { e.currentTarget.style.display = 'none'; }} />
 
-      {/* Content */}
-      <div style={{ position: 'absolute', inset: '15mm', display: 'flex', flexDirection: 'column' }}>
+      <LeftRibbon height="200mm" top="16mm" />
 
-        {/* Header */}
-        <header style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <img src={CERT_ASSETS.logo} alt="AICIT logo" style={{ height: 58, width: 'auto', objectFit: 'contain' }}
-            onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-          <div style={{ flex: 1 }}>
-            <div className="aicit-cert-heading" style={{ fontSize: 22, fontWeight: 800, color: '#0f1f4e', lineHeight: 1 }}>
-              {SITE.name}
-            </div>
-            <div style={{ fontSize: 10.5, letterSpacing: '2.5px', textTransform: 'uppercase', color: '#8a7a4a', fontWeight: 600, marginTop: 3 }}>
-              {SITE.fullName}
-            </div>
+      {/* Main content column (offset right of the ribbon) */}
+      <div style={{ position: 'absolute', top: '12mm', left: '40mm', right: '12mm', bottom: '10mm', display: 'flex', flexDirection: 'column' }}>
+
+        {/* Masthead */}
+        <Masthead />
+        <div style={{ textAlign: 'center', marginTop: 2 }}>
+          <div style={{ fontSize: 8.5, letterSpacing: '2px', color: GOLD, fontWeight: 700 }}>
+            SKILLS&nbsp;|&nbsp;KNOWLEDGE&nbsp;|&nbsp;OPPORTUNITY&nbsp;|&nbsp;A BRIGHTER TOMORROW
           </div>
-          {certNumber && (
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 8, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#8a7a4a', fontWeight: 700 }}>Certificate No.</div>
-              <div className="aicit-cert-heading" style={{ fontSize: 12, fontWeight: 700, color: '#0f1f4e', fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.5px' }}>
-                {certNumber}
-              </div>
-            </div>
-          )}
-        </header>
+        </div>
 
-        {/* Gold divider */}
-        <div style={{ height: 2.5, background: 'linear-gradient(90deg, transparent, #c9a24a 20%, #c9a24a 80%, transparent)', margin: '10px 0 0' }} />
+        <GoldDivider width="88%" margin="8px auto 0" />
 
         {/* Title */}
-        <div style={{ textAlign: 'center', marginTop: 14 }}>
-          <div style={{ fontSize: 11, letterSpacing: '6px', textTransform: 'uppercase', color: '#8a7a4a', fontWeight: 600 }}>
-            Certificate of
+        <div style={{ textAlign: 'center', marginTop: 6 }}>
+          <div className="aicit-cert-serif" style={{ fontSize: 40, fontWeight: 800, color: NAVY, lineHeight: 0.95, letterSpacing: '1px' }}>
+            CERTIFICATE
           </div>
-          <div className="aicit-cert-heading" style={{ fontSize: 42, fontWeight: 800, color: '#0f1f4e', lineHeight: 1, marginTop: 2 }}>
-            Achievement
+          <div className="aicit-cert-heading" style={{ fontSize: 15, fontWeight: 700, color: GOLD, letterSpacing: '5px', marginTop: 2 }}>
+            OF ACHIEVEMENT
           </div>
         </div>
 
-        {/* Body: photo + presentation */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24, marginTop: 16, flex: 1 }}>
-          {/* Photo frame */}
-          <div style={{ flexShrink: 0, textAlign: 'center' }}>
-            <div style={{
-              width: '32mm', height: '40mm', border: '2px solid #c9a24a',
-              padding: 3, background: '#fff', boxShadow: '0 2px 10px rgba(15,31,78,0.12)',
-            }}>
-              <div style={{
-                width: '100%', height: '100%', background: '#f1f5f9',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
-              }}>
-                {photoUrl ? (
-                  <img src={photoUrl} alt={`${studentName} photograph`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                  <span style={{ fontSize: 8.5, color: '#94a3b8', letterSpacing: '1px', textAlign: 'center', padding: 6 }}>
-                    PHOTOGRAPH
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Presentation text */}
-          <div style={{ flex: 1, textAlign: 'center' }}>
-            <div style={{ fontSize: 12.5, color: '#334155' }}>This is proudly presented to</div>
-            <div className="aicit-cert-heading" style={{
-              fontSize: 38, fontWeight: 800, color: '#1e3a8a', lineHeight: 1.05,
-              margin: '6px 0 4px', wordBreak: 'break-word',
-            }}>
+        {/* Presentation + photo */}
+        <div style={{ display: 'flex', gap: 12, marginTop: 12, alignItems: 'flex-start' }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 12, color: '#334155', fontStyle: 'italic' }}>This is to certify that</div>
+            <div className="aicit-cert-serif" style={{ fontSize: 30, fontWeight: 800, color: GOLD, lineHeight: 1.05, margin: '4px 0', letterSpacing: '0.5px', wordBreak: 'break-word' }}>
               {studentName}
             </div>
-            <div style={{ width: 120, height: 2, background: '#c9a24a', margin: '0 auto 10px' }} />
-            <div style={{ fontSize: 12.5, color: '#334155', lineHeight: 1.5, maxWidth: '150mm', margin: '0 auto' }}>
-              for successfully completing
-              {courseName ? <> the course <strong style={{ color: '#0f1f4e' }}>{courseName}</strong></> : <> the prescribed course of study</>}
-              {institute ? <> at <strong style={{ color: '#0f1f4e' }}>{institute}</strong></> : null}
-              {' '}and demonstrating the required standard of proficiency.
-            </div>
-
-            {/* Detail chips */}
-            {(courseName || grade || marksLabel || issueDate) && (
-              <div style={{
-                display: 'flex', justifyContent: 'center', gap: 28, marginTop: 16,
-                flexWrap: 'wrap', alignItems: 'flex-start',
-              }}>
-                <DetailChip label="Grade" value={grade} />
-                <DetailChip label="Marks Obtained" value={marksLabel} />
-                <DetailChip label="Date of Issue" value={issueDate} />
-              </div>
-            )}
+            <div style={{ fontSize: 11.5, color: '#334155' }}>has successfully completed the prescribed course of</div>
           </div>
+          <PhotoFrame photoUrl={photoUrl} name={studentName} label="PASSPORT&nbsp;SIZE PHOTO" width="30mm" height="37mm" />
         </div>
 
-        {/* Footer: signatures / seal / QR */}
-        <footer style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16 }}>
-          <SignatureBlock img={CERT_ASSETS.sign1} name="Director" title="Authorized Signatory" />
+        {/* Course panel */}
+        {courseName && (
+          <div style={{ position: 'relative', margin: '10px 0 0' }}>
+            <div style={{
+              background: `linear-gradient(135deg, #0b1b40, #16306b)`,
+              border: `2px solid ${GOLD}`, borderRadius: 2, padding: '10px 28px', textAlign: 'center',
+              boxShadow: '0 2px 10px rgba(11,27,64,0.25)',
+            }}>
+              <div className="aicit-cert-serif" style={{ fontSize: 22, fontWeight: 800, color: GOLD_LT, lineHeight: 1.1, textTransform: 'uppercase' }}>
+                {courseName}
+              </div>
+            </div>
+          </div>
+        )}
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
-            <SealBadge />
-            {qrDataUrl && (
-              <div style={{ textAlign: 'center' }}>
-                <img src={qrDataUrl} alt="Verification QR code" style={{ width: 62, height: 62 }} />
-                <div style={{ fontSize: 7, color: '#8a7a4a', fontWeight: 600, letterSpacing: '0.5px', marginTop: 2 }}>
-                  SCAN TO VERIFY
+        {/* Body sentence */}
+        <div style={{ textAlign: 'center', fontSize: 10.5, color: '#334155', fontStyle: 'italic', lineHeight: 1.5, margin: '10px 14px 0' }}>
+          During the period of training, the student has demonstrated commendable performance and has been
+          awarded this certificate for successful completion of the course.
+        </div>
+
+        {/* Stats strip */}
+        {(duration || grade || marksLabel) && (
+          <div style={{ display: 'flex', border: `1.5px solid ${GOLD}`, borderRadius: 3, marginTop: 12, padding: '8px 4px', background: 'rgba(255,255,255,0.5)' }}>
+            <Stat label="Course Duration" value={duration}
+              icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>} />
+            <div style={{ width: 1, background: GOLD, opacity: 0.5 }} />
+            <Stat label="Grade" value={grade}
+              icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2l2.4 5 5.6.6-4 4 1 5.4L12 19l-5 3 1-5.4-4-4 5.6-.6z"/></svg>} />
+            <div style={{ width: 1, background: GOLD, opacity: 0.5 }} />
+            <Stat label="Marks Obtained" value={marksLabel}
+              icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>} />
+          </div>
+        )}
+
+        {/* Meta row: left IDs / right ATC */}
+        <div style={{ display: 'flex', gap: 16, marginTop: 12, borderTop: `1px solid ${GOLD}`, paddingTop: 10 }}>
+          <div style={{ flex: 1 }}>
+            <MetaRow label="Student ID" value={studentId}
+              icon={<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>} />
+            <MetaRow label="Certificate No." value={certNumber}
+              icon={<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M9 11h6M9 15h4"/></svg>} />
+            <MetaRow label="Date of Issue" value={issueDate}
+              icon={<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>} />
+          </div>
+          <div style={{ width: 1, background: GOLD, opacity: 0.5 }} />
+          <div style={{ flex: 1 }}>
+            {atc.name && (
+              <div style={{ display: 'flex', gap: 7 }}>
+                <span style={{ color: NAVY, marginTop: 1 }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 21h18M5 21V8l7-4 7 4v13M9 21v-6h6v6"/></svg>
+                </span>
+                <div>
+                  <div style={{ fontSize: 8, color: '#5a6b8c', fontWeight: 600 }}>Authorised Training Centre (ATC)</div>
+                  <div className="aicit-cert-heading" style={{ fontSize: 11.5, fontWeight: 800, color: NAVY, lineHeight: 1.2 }}>{atc.name}</div>
+                  {atc.location && <div style={{ fontSize: 9.5, color: '#475569', fontWeight: 600 }}>{atc.location}</div>}
                 </div>
               </div>
             )}
           </div>
+        </div>
 
-          <SignatureBlock img={CERT_ASSETS.sign2} name="Registrar" title="Controller of Examinations" />
-        </footer>
+        {/* Footer signatures */}
+        <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'flex-end', gap: 10, paddingTop: 14 }}>
+          <SignatureCol img={CERT_ASSETS.sign1}
+            caption={['Signature of the', 'Head of the Institute', 'with Institution Seal', '(Authorised Signatory)']} />
 
-        {/* Verify footnote */}
-        {certNumber && (
-          <div style={{ textAlign: 'center', fontSize: 7.5, color: '#94a3b8', marginTop: 6 }}>
-            Verify the authenticity of this certificate at {SITE.url?.replace(/^https?:\/\//, '') || 'the official AICIT website'} /verify
+          <div style={{ textAlign: 'center', flex: 1 }}>
+            {qrDataUrl ? (
+              <>
+                <img src={qrDataUrl} alt="Verification QR code" style={{ width: 60, height: 60 }} />
+                <div style={{ fontSize: 8, color: NAVY, fontWeight: 700, marginTop: 2 }}>Verification QR</div>
+                <div style={{ fontSize: 7, color: '#5a6b8c' }}>Connect to official<br />verification system</div>
+              </>
+            ) : (
+              <div style={{ fontSize: 7.5, color: '#94a3b8', padding: '0 6px' }}>
+                Verify at {SITE.url?.replace(/^https?:\/\//, '') || 'the AICIT website'}/verify
+              </div>
+            )}
           </div>
-        )}
+
+          <SignatureCol img={CERT_ASSETS.sign2}
+            caption={['EXAM EXECUTIVE', 'ALL INDIA COUNCIL FOR', 'INFORMATION TECHNOLOGY', '(Authorised Signatory)']} />
+        </div>
       </div>
     </div>
   );

@@ -34,13 +34,16 @@ export default function CertificatePreviewModal({ cert, photoUrl = null, onClose
     return () => { alive = false; };
   }, [cert?.certificateNumber]);
 
-  // Scale the fixed A4-landscape sheet (297mm wide) to fit the viewport width.
+  // Scale the fixed A4-PORTRAIT sheet (210mm wide × 297mm tall) to fit both the
+  // available width and height of the viewport, so the whole certificate shows.
   useLayoutEffect(() => {
     const MM_TO_PX = 96 / 25.4;         // CSS px per mm at 96dpi
-    const SHEET_W = 297 * MM_TO_PX;     // ≈ 1122.5px
+    const SHEET_W = 210 * MM_TO_PX;     // ≈ 793.7px
+    const SHEET_H = 297 * MM_TO_PX;     // ≈ 1122.5px
     const compute = () => {
-      const avail = (stageRef.current?.clientWidth ?? window.innerWidth) - 8;
-      setScale(Math.min(1, avail / SHEET_W));
+      const availW = (stageRef.current?.clientWidth ?? window.innerWidth) - 16;
+      const availH = (stageRef.current?.clientHeight ?? window.innerHeight) - 16;
+      setScale(Math.min(1, availW / SHEET_W, availH / SHEET_H));
     };
     compute();
     window.addEventListener('resize', compute);
@@ -57,7 +60,8 @@ export default function CertificatePreviewModal({ cert, photoUrl = null, onClose
   const handlePrint = () => window.print();
 
   const MM_TO_PX = 96 / 25.4;
-  const scaledHeight = 210 * MM_TO_PX * scale;
+  const scaledHeight = 297 * MM_TO_PX * scale;
+  const scaledWidth = 210 * MM_TO_PX * scale;
 
   const Sheet = typing ? TypingCertificateSheet : CertificateSheet;
 
@@ -100,8 +104,8 @@ export default function CertificatePreviewModal({ cert, photoUrl = null, onClose
       </div>
 
       {/* Scrollable preview stage */}
-      <div ref={stageRef} className="flex-1 overflow-auto p-2 sm:p-6 flex justify-center">
-        <div style={{ height: scaledHeight }}>
+      <div ref={stageRef} className="flex-1 overflow-auto p-2 sm:p-6 flex justify-center items-start">
+        <div style={{ width: scaledWidth, height: scaledHeight, flexShrink: 0 }}>
           <div className="aicit-cert-scale" style={{ '--cert-scale': String(scale) }}>
             <div className="shadow-2xl">
               <Sheet cert={cert} photoUrl={photoUrl} qrDataUrl={qr} />

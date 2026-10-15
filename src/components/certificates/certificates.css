@@ -1,25 +1,23 @@
 /**
  * AICIT – Certificate print & layout styles
  *
- * The certificate "sheet" is a fixed A4-landscape canvas (297mm x 210mm)
- * so that on-screen preview, PDF capture and print all share identical
- * geometry. Everything inside the sheet is positioned relative to this
- * canvas, which keeps borders, photo, signatures and seal from ever being
- * clipped regardless of viewport size.
+ * The certificate "sheet" is a fixed A4-PORTRAIT canvas (210mm x 297mm) so
+ * that on-screen preview, save-as-PDF and print all share identical geometry.
+ * Everything inside is positioned relative to this canvas, which keeps the
+ * gold border, left ribbon, photo, tables, signatures and seal from being
+ * clipped at any viewport size.
  */
 
 /* ── The sheet canvas ───────────────────────────────────────── */
 .aicit-cert-sheet {
   position: relative;
-  width: 297mm;
-  height: 210mm;
-  background: #ffffff;
-  color: #0f1f4e;
+  width: 210mm;
+  height: 297mm;
+  background: #fbf7ec;            /* warm ivory */
+  color: #0b1b40;                 /* deep navy */
   overflow: hidden;
   box-sizing: border-box;
-  /* Fonts already loaded globally (Inter / Poppins). */
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  /* Preserve the deep-navy & gold fills when printing. */
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
 }
@@ -27,28 +25,28 @@
 .aicit-cert-sheet * {
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
+  box-sizing: border-box;
 }
 
+/* Serif display face for titles & names (loaded in index via Google Fonts). */
+.aicit-cert-serif {
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+}
 .aicit-cert-heading {
   font-family: 'Poppins', 'Inter', system-ui, sans-serif;
 }
 
-/* Guilloche / fine pattern used in the border frame. */
-.aicit-cert-guilloche {
-  background-image:
-    repeating-linear-gradient(45deg, rgba(30, 58, 138, 0.05) 0 2px, transparent 2px 6px),
-    repeating-linear-gradient(-45deg, rgba(245, 158, 11, 0.045) 0 2px, transparent 2px 6px);
+/* Subtle globe/world watermark behind the body. */
+.aicit-cert-watermark {
+  opacity: 0.06;
 }
 
-/* Watermark seal behind the body. */
-.aicit-cert-watermark {
-  opacity: 0.05;
-  filter: grayscale(100%);
+/* Thin gold hairline helper. */
+.aicit-gold-rule {
+  background: linear-gradient(90deg, transparent, #c9a24a 15%, #e7c877 50%, #c9a24a 85%, transparent);
 }
 
 /* ── On-screen responsive scaling ───────────────────────────── */
-/* The preview wrapper scales the fixed-size sheet down to fit smaller
-   screens using a CSS variable set inline by the modal. */
 .aicit-cert-scale {
   transform: scale(var(--cert-scale, 1));
   transform-origin: top center;
@@ -57,7 +55,7 @@
 /* ── Print ──────────────────────────────────────────────────── */
 @media print {
   @page {
-    size: A4 landscape;
+    size: A4 portrait;
     margin: 0;
   }
 
@@ -67,7 +65,6 @@
     background: #ffffff !important;
   }
 
-  /* Hide everything except the printable certificate region. */
   body * {
     visibility: hidden !important;
   }
@@ -81,24 +78,22 @@
     inset: 0;
     margin: 0;
     padding: 0;
-    width: 297mm;
-    height: 210mm;
+    width: 210mm;
+    height: 297mm;
   }
 
-  /* Never scale when printing — always 1:1 real paper size. */
   .aicit-cert-scale {
     transform: none !important;
   }
 
   .aicit-cert-sheet {
-    width: 297mm;
-    height: 210mm;
+    width: 210mm;
+    height: 297mm;
     box-shadow: none !important;
     page-break-inside: avoid;
     break-inside: avoid;
   }
 
-  /* Suppress trailing blank page from any following margin. */
   .aicit-no-print {
     display: none !important;
   }
