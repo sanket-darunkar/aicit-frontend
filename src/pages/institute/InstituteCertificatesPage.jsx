@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listCertificates, downloadCertificatePdf } from '../../services/instituteService.js';
+import CertificatePreview from '../../components/certificates/CertificatePreview.jsx';
 
 const STATUS_COLORS = {
   REQUESTED:    'bg-yellow-100 text-yellow-800',
@@ -18,6 +19,7 @@ export default function InstituteCertificatesPage() {
   const [page,        setPage]      = useState(0);
   const [loading,     setLoading]   = useState(false);
   const [error,       setError]     = useState(null);
+  const [preview,     setPreview]   = useState(null);  // cert being previewed
   const navigate = useNavigate();
 
   const load = useCallback(async () => {
@@ -111,12 +113,18 @@ export default function InstituteCertificatesPage() {
                     </td>
                     <td className="px-4 py-3">
                       {c.status === 'ISSUED' && (
-                        <button onClick={() => handleDownload(c.id, c.certificateNumber)}
-                          className="text-xs text-primary-600 hover:underline font-semibold">
-                          {c.certificateType === 'TYPING'
-                            ? '⬇ Download Typing Certificate'
-                            : '⬇ Download AICIT Certificate'}
-                        </button>
+                        <div className="flex gap-3 flex-wrap">
+                          <button onClick={() => setPreview(c)}
+                            className="text-xs text-primary-700 hover:underline font-semibold">
+                            👁 Preview
+                          </button>
+                          <button onClick={() => handleDownload(c.id, c.certificateNumber)}
+                            className="text-xs text-gray-500 hover:underline font-semibold">
+                            {c.certificateType === 'TYPING'
+                              ? '⬇ Typing Certificate'
+                              : '⬇ AICIT Certificate'}
+                          </button>
+                        </div>
                       )}
                     </td>
                   </tr>
@@ -137,6 +145,17 @@ export default function InstituteCertificatesPage() {
         </div>
       )}
 
+      {preview && (
+        <CertificatePreview
+          cert={preview}
+          scope="institute"
+          onClose={() => setPreview(null)}
+          serverPdf={{
+            label: 'Official PDF',
+            onDownload: () => handleDownload(preview.id, preview.certificateNumber),
+          }}
+        />
+      )}
     </div>
   );
 }

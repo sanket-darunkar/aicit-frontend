@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { listAdminCertificates, approveCertificate, rejectCertificate, revokeCertificate, downloadAdminCertificatePdf } from '../../services/adminService.js';
+import CertificatePreview from '../../components/certificates/CertificatePreview.jsx';
 
 const STATUS_COLORS = {
   REQUESTED:    'bg-yellow-100 text-yellow-800',
@@ -136,6 +137,7 @@ export default function AdminCertificatesPage() {
   const [loading,    setLoading]    = useState(false);
   const [error,      setError]      = useState(null);
   const [modal,      setModal]      = useState(null); // { type: 'approve'|'reject'|'revoke', cert }
+  const [preview,    setPreview]    = useState(null); // cert being previewed
 
   const load = useCallback(async () => {
     setLoading(true); setError(null);
@@ -272,8 +274,10 @@ export default function AdminCertificatesPage() {
                         )}
                         {c.status === 'ISSUED' && (
                           <>
+                            <button onClick={() => setPreview(c)}
+                              className="text-xs text-primary-700 hover:underline font-semibold">👁 Preview</button>
                             <button onClick={() => handleDownload(c.id, c.certificateNumber)}
-                              className="text-xs text-primary-600 hover:underline font-semibold">
+                              className="text-xs text-gray-500 hover:underline font-semibold">
                               {c.certificateType === 'TYPING'
                                 ? '⬇ Typing Cert'
                                 : '⬇ AICIT Cert'}
@@ -302,6 +306,18 @@ export default function AdminCertificatesPage() {
           <button disabled={page>=pagination.totalPages-1} onClick={() => setPage(p=>p+1)}
             className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40">Next →</button>
         </div>
+      )}
+
+      {preview && (
+        <CertificatePreview
+          cert={preview}
+          scope="admin"
+          onClose={() => setPreview(null)}
+          serverPdf={{
+            label: 'Official PDF',
+            onDownload: () => handleDownload(preview.id, preview.certificateNumber),
+          }}
+        />
       )}
     </div>
   );

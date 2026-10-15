@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getAdminCertificate, approveCertificate, rejectCertificate, revokeCertificate, downloadAdminCertificatePdf } from '../../services/adminService.js';
+import CertificatePreview from '../../components/certificates/CertificatePreview.jsx';
 
 const STATUS_COLORS = {
   REQUESTED:    'bg-yellow-100 text-yellow-800',
@@ -131,6 +132,7 @@ export default function AdminCertificateDetailPage() {
   const [error,   setError]   = useState(null);
   const [actionLoading, setAL] = useState(false);
   const [modal,   setModal]   = useState(null);
+  const [preview, setPreview] = useState(false);
 
   const load = async () => {
     setLoading(true); setError(null);
@@ -205,6 +207,10 @@ export default function AdminCertificateDetailPage() {
         )}
         {st === 'ISSUED' && (
           <>
+            <button onClick={() => setPreview(true)}
+              className="px-5 py-2.5 bg-gold-500 hover:bg-gold-600 text-white text-sm font-semibold rounded-lg">
+              👁 Preview Certificate
+            </button>
             <button onClick={handleDownload}
               className="px-5 py-2.5 bg-primary-700 hover:bg-primary-800 text-white text-sm font-semibold rounded-lg">
               {cert.certificateType === 'TYPING'
@@ -291,6 +297,15 @@ export default function AdminCertificateDetailPage() {
             setModal(null);
             doAction(() => revokeCertificate(id, reason));
           }}
+        />
+      )}
+
+      {preview && (
+        <CertificatePreview
+          cert={cert}
+          scope="admin"
+          onClose={() => setPreview(false)}
+          serverPdf={{ label: 'Official PDF', onDownload: handleDownload }}
         />
       )}
     </div>

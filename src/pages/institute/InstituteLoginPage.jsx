@@ -57,7 +57,7 @@ function ForgotPasswordModal({ onClose }) {
         ) : (
           <>
             <p className="text-sm text-gray-500 mb-5">
-              Enter your registered email and we'll send a new temporary password.
+              Enter your registered email and we&apos;ll send a new temporary password.
             </p>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
