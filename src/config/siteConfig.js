@@ -90,8 +90,7 @@ export const COURSE_CATEGORIES = [
 export const COURSES = [
   // Computer & IT
   { id: 1,  category: 'computer',   name: 'Diploma in Computer Application (DCA)',              duration: '6 Months',  featured: true  },
-  { id: 2,  category: 'computer',   name: 'MS-CIT',                                             duration: '3 Months',  featured: true  },
-  { id: 3,  category: 'computer',   name: 'Course on Computer Concepts (CCC)',                  duration: '3 Months',  featured: false },
+  { id: 3,  category: 'computer',   name: 'Course on Computer Concepts (CCC)',                  duration: '3 Months',  featured: true  },
   { id: 4,  category: 'computer',   name: 'Certificate in Hardware & Networking',               duration: '5 Months',  featured: false },
   { id: 5,  category: 'computer',   name: 'KLiC Web Designing',                                 duration: '3 Months',  featured: false },
   { id: 6,  category: 'computer',   name: 'Google Workspace Expert',                            duration: '2 Months',  featured: false },
@@ -116,8 +115,8 @@ export const COURSES = [
   { id: 22, category: 'typing',     name: 'Hindi Typing – 40 W.P.M.',                          duration: '3 Months',  featured: false },
   { id: 23, category: 'typing',     name: 'GCC-TBC Pune Board Typing',                         duration: '6 Months',  featured: false },
   // Combo / Special
-  { id: 24, category: 'computer',   name: 'MS-CIT + English Typing 30 & 40 WPM + Diploma',     duration: '6 Months',  featured: true  },
-  { id: 25, category: 'computer',   name: 'MS-CIT + Typing + Tally Prime + Diploma',            duration: '8 Months',  featured: false },
+  { id: 24, category: 'computer',   name: 'English Typing 30 & 40 WPM + Diploma',              duration: '6 Months',  featured: true  },
+  { id: 25, category: 'computer',   name: 'Typing + Tally Prime + Diploma',                    duration: '8 Months',  featured: false },
 ];
 
 // ── Why Choose Us cards ───────────────────────────────────────
