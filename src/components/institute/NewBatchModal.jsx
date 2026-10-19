@@ -6,9 +6,10 @@ import {
   createBulkBatch,
   downloadBatchTemplate,
 } from '../../services/instituteService.js';
-import { getPublicCourses } from '../../services/publicService.js';
+import { searchPublicCourses } from '../../services/publicService.js';
 import { PAYMENT } from '../../config/siteConfig.js';
 import BatchPaymentPanel from './BatchPaymentPanel.jsx';
+import CourseFinder from '../common/CourseFinder.jsx';
 
 const money = (n) => `${PAYMENT.currencySymbol}${Number(n ?? 0).toLocaleString('en-IN')}`;
 
@@ -81,7 +82,7 @@ function ModeChooser({ onPick }) {
 // ── Single flow ───────────────────────────────────────────────
 function SingleFlow({ onBack, onCreated }) {
   const [students, setStudents] = useState([]);
-  const [courses, setCourses]   = useState([]);
+  const [course, setCourse]     = useState(null);   // selected course object (from CourseFinder)
   const [form, setForm]         = useState({ studentId: '', courseId: '', marks: '', grade: '' });
   const [step, setStep]         = useState('form');   // form | preview
   const [loading, setLoading]   = useState(false);
@@ -89,11 +90,9 @@ function SingleFlow({ onBack, onCreated }) {
 
   useEffect(() => {
     listStudents({ size: 100 }).then(r => setStudents(r.data?.content ?? [])).catch(() => {});
-    getPublicCourses().then(r => setCourses(r.data ?? [])).catch(() => {});
   }, []);
 
   const student = students.find(s => String(s.id) === String(form.studentId));
-  const course  = courses.find(c => String(c.id) === String(form.courseId));
 
   const goPreview = (e) => {
     e.preventDefault();
@@ -149,14 +148,13 @@ function SingleFlow({ onBack, onCreated }) {
           {students.map(s => <option key={s.id} value={s.id}>{s.fullName} ({s.studentId})</option>)}
         </select>
       </div>
-      <div>
-        <label className="label label-req">Course</label>
-        <select required value={form.courseId}
-          onChange={e => setForm(f => ({ ...f, courseId: e.target.value }))} className="input">
-          <option value="">Select course…</option>
-          {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
-      </div>
+      <CourseFinder
+        label="Course"
+        required
+        fetcher={searchPublicCourses}
+        value={course}
+        onChange={(c) => { setCourse(c); setForm(f => ({ ...f, courseId: c ? c.id : '' })); }}
+      />
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="label">Marks</label>

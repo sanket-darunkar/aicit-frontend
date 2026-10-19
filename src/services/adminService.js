@@ -105,6 +105,19 @@ export const downloadAdminCertificatePdf = (id) =>
 export const listCourses = () =>
   adminApi.get('/api/admin/courses');
 
+/** Paginated/searchable course lookup (admin). params: { search, category, active, sort, direction, page, size } */
+export const searchCourses = ({ search = '', category = '', active = null, sort = 'name',
+                                direction = 'asc', page = 0, size = 20 } = {}) => {
+  const p = new URLSearchParams({ sort, direction, page, size });
+  if (search)   p.set('search', search);
+  if (category) p.set('category', category);
+  if (active !== null && active !== '') p.set('active', active);
+  return adminApi.get(`/api/admin/courses/search?${p}`);
+};
+
+export const getCourseStats = () =>
+  adminApi.get('/api/admin/courses/stats');
+
 export const createCourse = (data) =>
   adminApi.post('/api/admin/courses', data);
 
