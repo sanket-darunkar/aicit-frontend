@@ -33,7 +33,10 @@ export const auth = {
 function createClient(getToken, onUnauthorized) {
   const client = axios.create({
     baseURL: BASE_URL,
-    timeout: 30000,
+    // 60s: the backend runs on a tier that can cold-start (~40s) after idle.
+    // A 30s timeout cancelled the first request and showed "0 courses"; 60s
+    // lets the initial wake-up request complete.
+    timeout: 60000,
     headers: { 'Content-Type': 'application/json' },
   });
 
@@ -80,7 +83,8 @@ export const instituteApi = createClient(
 // ── Public API client (no auth) ───────────────────────────────
 export const publicApi = axios.create({
   baseURL: BASE_URL,
-  timeout: 30000,
+  // 60s — see note above: tolerate backend cold-starts on the first request.
+  timeout: 60000,
   headers: { 'Content-Type': 'application/json' },
 });
 publicApi.interceptors.response.use(
