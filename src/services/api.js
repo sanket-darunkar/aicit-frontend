@@ -30,13 +30,15 @@ export const auth = {
 };
 
 // ── Factory: create an axios instance with auth interceptor ───
+// Render's free tier sleeps after idle and a cold start takes up to ~150s.
+// Use a long timeout so the first request after a sleep survives the wake-up
+// instead of failing with a timeout error.
+const COLD_START_TIMEOUT = 180000; // 180s
+
 function createClient(getToken, onUnauthorized) {
   const client = axios.create({
     baseURL: BASE_URL,
-    // 60s: the backend runs on a tier that can cold-start (~40s) after idle.
-    // A 30s timeout cancelled the first request and showed "0 courses"; 60s
-    // lets the initial wake-up request complete.
-    timeout: 60000,
+    timeout: COLD_START_TIMEOUT,
     headers: { 'Content-Type': 'application/json' },
   });
 
@@ -83,11 +85,22 @@ export const instituteApi = createClient(
 // ── Public API client (no auth) ───────────────────────────────
 export const publicApi = axios.create({
   baseURL: BASE_URL,
-  // 60s — see note above: tolerate backend cold-starts on the first request.
-  timeout: 60000,
+  timeout: COLD_START_TIMEOUT, // tolerate backend cold-starts on the first request
   headers: { 'Content-Type': 'application/json' },
 });
 publicApi.interceptors.response.use(
   (res) => res.data,
   (err) => Promise.reject(new Error(err.response?.data?.message ?? err.message ?? 'Request failed'))
 );
+
+/**
+ * Fire-and-forget warm-up ping. Call this as soon as a login page mounts so
+ * the backend starts booting while the user is still typing their credentials
+ * — by the time they click "Sign In" the server is usually already awake.
+ * Never throws; safe to call anywhere.
+ */
+export function warmUpBackend() {
+  try {
+    fetch(`${BASE_URL}/api/public/health`, { method: 'GET', mode: 'cors' }).catch(() => {});
+  } catch (_) { /* ignore */ }
+}

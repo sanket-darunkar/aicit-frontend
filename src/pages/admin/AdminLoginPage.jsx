@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAdminAuth } from '../../contexts/AdminAuthContext.jsx';
+import { warmUpBackend } from '../../services/api.js';
 
 export default function AdminLoginPage() {
   const [email,    setEmail]    = useState('');
@@ -8,6 +9,10 @@ export default function AdminLoginPage() {
   const [showPass, setShowPass] = useState(false);
   const { login, loading, error, isAuthenticated } = useAdminAuth();
   const navigate = useNavigate();
+
+  // Wake the backend on page load (Render free tier can cold-start after idle),
+  // so it is ready by the time the user submits.
+  useEffect(() => { warmUpBackend(); }, []);
 
   useEffect(() => {
     if (isAuthenticated) navigate('/admin/dashboard', { replace: true });

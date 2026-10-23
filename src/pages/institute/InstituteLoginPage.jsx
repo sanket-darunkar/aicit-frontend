@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useInstituteAuth } from '../../contexts/InstituteAuthContext.jsx';
-import { BASE_URL } from '../../services/api.js';
+import { BASE_URL, warmUpBackend } from '../../services/api.js';
 
 // ── Forgot Password Modal ─────────────────────────────────────
 function ForgotPasswordModal({ onClose }) {
@@ -91,6 +91,10 @@ export default function InstituteLoginPage() {
   const [showForgot, setShowForgot] = useState(false);
   const { login, loading, error, isAuthenticated } = useInstituteAuth();
   const navigate = useNavigate();
+
+  // Wake the backend on page load (Render free tier can cold-start after idle),
+  // so it is ready by the time the user submits.
+  useEffect(() => { warmUpBackend(); }, []);
 
   useEffect(() => {
     if (isAuthenticated) navigate('/institute/dashboard', { replace: true });
