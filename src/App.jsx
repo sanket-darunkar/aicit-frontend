@@ -22,7 +22,9 @@ import PlaceholderPage             from './pages/PlaceholderPage.jsx';
 
 // Admin pages
 import AdminLoginPage           from './pages/admin/AdminLoginPage.jsx';
-import AdminDashboardPage       from './pages/admin/AdminDashboardPage.jsx';
+// Dashboards are lazy-loaded so the charting library (recharts) is only
+// fetched when a dashboard is actually opened — keeps the public site & login fast.
+const AdminDashboardPage       = React.lazy(() => import('./pages/admin/AdminDashboardPage.jsx'));
 import AdminInstitutesPage      from './pages/admin/AdminInstitutesPage.jsx';
 import AdminInstituteDetailPage from './pages/admin/AdminInstituteDetailPage.jsx';
 import AdminCertificatesPage    from './pages/admin/AdminCertificatesPage.jsx';
@@ -34,7 +36,7 @@ import AdminAuditLogsPage       from './pages/admin/AdminAuditLogsPage.jsx';
 
 // Institute pages
 import InstituteLoginPage           from './pages/institute/InstituteLoginPage.jsx';
-import InstituteDashboardPage       from './pages/institute/InstituteDashboardPage.jsx';
+const InstituteDashboardPage       = React.lazy(() => import('./pages/institute/InstituteDashboardPage.jsx'));
 import InstituteStudentsPage        from './pages/institute/InstituteStudentsPage.jsx';
 import InstituteAddStudentPage      from './pages/institute/InstituteAddStudentPage.jsx';
 import InstituteStudentDetailPage   from './pages/institute/InstituteStudentDetailPage.jsx';
