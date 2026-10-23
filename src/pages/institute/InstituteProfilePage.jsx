@@ -1,15 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useInstituteAuth } from '../../contexts/InstituteAuthContext.jsx';
 import { instituteApi } from '../../services/api.js';
-
-function Row({ label, value }) {
-  return (
-    <div className="flex flex-col sm:flex-row sm:items-start gap-1 py-2.5 border-b border-gray-50">
-      <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider sm:w-48 flex-shrink-0">{label}</span>
-      <span className="text-sm text-gray-900">{value || '—'}</span>
-    </div>
-  );
-}
+import {
+  PageHeader, DetailCard, DetailRow, LoadingState,
+} from '../../components/ui/index.js';
 
 // ── Change Password Form ──────────────────────────────────────
 function ChangePasswordForm() {
@@ -51,11 +45,9 @@ function ChangePasswordForm() {
   };
 
   const inputClass = (err) =>
-    `w-full px-4 py-2.5 text-sm border rounded-lg pr-10
-     focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
-     ${err ? 'border-red-300 bg-red-50' : 'border-gray-300'}`;
+    `input pr-10 ${err ? 'border-red-300 bg-red-50' : ''}`;
 
-  const EyeButton = ({ field, showKey }) => (
+  const EyeButton = ({ showKey }) => (
     <button type="button" onClick={() => toggle(showKey)}
       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
       aria-label={show[showKey] ? 'Hide' : 'Show'}>
@@ -69,83 +61,80 @@ function ChangePasswordForm() {
   );
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-      <h3 className="text-base font-heading font-bold text-primary-900 mb-1">Change Password</h3>
-      <p className="text-sm text-gray-500 mb-5">Update your portal login password.</p>
-
-      {status === 'success' && (
-        <div className="mb-4 flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-800">
-          <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
-          </svg>
-          {message}
-        </div>
-      )}
-      {status === 'error' && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-          {message}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Current password */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
-          <div className="relative">
-            <input type={show.current ? 'text' : 'password'} required
-              value={form.currentPassword} onChange={e => set('currentPassword', e.target.value)}
-              placeholder="Enter current password"
-              className={inputClass(false)} />
-            <EyeButton showKey="current" />
+    <DetailCard title="Change Password" subtitle="Update your portal login password." icon="🔑">
+      <div className="px-5 py-5">
+        {status === 'success' && (
+          <div className="mb-4 flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-800">
+            <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+            </svg>
+            {message}
           </div>
-        </div>
-
-        {/* New password */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
-          <div className="relative">
-            <input type={show.newPw ? 'text' : 'password'} required
-              value={form.newPassword} onChange={e => set('newPassword', e.target.value)}
-              placeholder="At least 8 characters"
-              className={inputClass(status === 'error' && form.newPassword.length > 0 && form.newPassword.length < 8)} />
-            <EyeButton showKey="newPw" />
+        )}
+        {status === 'error' && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+            {message}
           </div>
-          {form.newPassword.length > 0 && form.newPassword.length < 8 && (
-            <p className="mt-1 text-xs text-red-500">Must be at least 8 characters</p>
-          )}
-        </div>
+        )}
 
-        {/* Confirm new password */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
-          <div className="relative">
-            <input type={show.confirm ? 'text' : 'password'} required
-              value={form.confirmPassword} onChange={e => set('confirmPassword', e.target.value)}
-              placeholder="Re-enter new password"
-              className={inputClass(form.confirmPassword.length > 0 && form.confirmPassword !== form.newPassword)} />
-            <EyeButton showKey="confirm" />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Current password */}
+          <div>
+            <label htmlFor="pw-current" className="label">Current Password</label>
+            <div className="relative">
+              <input id="pw-current" type={show.current ? 'text' : 'password'} required
+                value={form.currentPassword} onChange={e => set('currentPassword', e.target.value)}
+                placeholder="Enter current password"
+                className={inputClass(false)} />
+              <EyeButton showKey="current" />
+            </div>
           </div>
-          {form.confirmPassword.length > 0 && form.confirmPassword !== form.newPassword && (
-            <p className="mt-1 text-xs text-red-500">Passwords do not match</p>
-          )}
-        </div>
 
-        <button type="submit" disabled={status === 'loading'}
-          className="px-6 py-2.5 bg-primary-800 hover:bg-primary-700 disabled:opacity-60
-                     text-white text-sm font-semibold rounded-lg transition-colors
-                     flex items-center gap-2">
-          {status === 'loading' ? (
-            <>
-              <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-              </svg>
-              Updating...
-            </>
-          ) : '🔑 Update Password'}
-        </button>
-      </form>
-    </div>
+          {/* New password */}
+          <div>
+            <label htmlFor="pw-new" className="label">New Password</label>
+            <div className="relative">
+              <input id="pw-new" type={show.newPw ? 'text' : 'password'} required
+                value={form.newPassword} onChange={e => set('newPassword', e.target.value)}
+                placeholder="At least 8 characters"
+                className={inputClass(status === 'error' && form.newPassword.length > 0 && form.newPassword.length < 8)} />
+              <EyeButton showKey="newPw" />
+            </div>
+            {form.newPassword.length > 0 && form.newPassword.length < 8 && (
+              <p className="mt-1 text-xs text-red-500">Must be at least 8 characters</p>
+            )}
+          </div>
+
+          {/* Confirm new password */}
+          <div>
+            <label htmlFor="pw-confirm" className="label">Confirm New Password</label>
+            <div className="relative">
+              <input id="pw-confirm" type={show.confirm ? 'text' : 'password'} required
+                value={form.confirmPassword} onChange={e => set('confirmPassword', e.target.value)}
+                placeholder="Re-enter new password"
+                className={inputClass(form.confirmPassword.length > 0 && form.confirmPassword !== form.newPassword)} />
+              <EyeButton showKey="confirm" />
+            </div>
+            {form.confirmPassword.length > 0 && form.confirmPassword !== form.newPassword && (
+              <p className="mt-1 text-xs text-red-500">Passwords do not match</p>
+            )}
+          </div>
+
+          <button type="submit" disabled={status === 'loading'}
+            className="btn-primary text-sm disabled:opacity-60 flex items-center gap-2">
+            {status === 'loading' ? (
+              <>
+                <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                </svg>
+                Updating...
+              </>
+            ) : '🔑 Update Password'}
+          </button>
+        </form>
+      </div>
+    </DetailCard>
   );
 }
 
@@ -162,13 +151,15 @@ export default function InstituteProfilePage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="flex items-center justify-center py-20 text-gray-400"><svg className="animate-spin w-6 h-6 mr-2" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Loading...</div>;
+  if (loading) return <LoadingState label="Loading…" />;
 
   const data = institute || {};
+  const address = [data.addressLine1, data.addressLine2, data.city, data.district, data.state, data.pinCode]
+    .filter(Boolean).join(', ');
 
   return (
-    <div className="max-w-2xl space-y-5">
-      <h1 className="text-2xl font-heading font-bold text-primary-900">Institute Profile</h1>
+    <div className="space-y-5 max-w-2xl">
+      <PageHeader title="Institute Profile" icon="🏫" />
 
       {error && (
         <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
@@ -177,37 +168,27 @@ export default function InstituteProfilePage() {
       )}
 
       {/* Institute info card */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="w-14 h-14 rounded-xl bg-primary-100 flex items-center justify-center text-2xl flex-shrink-0">🏫</div>
-          <div>
-            <h2 className="text-xl font-heading font-bold text-primary-900">
-              {data.name || user?.instituteName}
-            </h2>
-            <p className="text-sm font-mono text-gray-500">
-              {data.instituteCode || 'Code not available'}
-            </p>
-          </div>
-        </div>
-
-        <Row label="Institute Code"   value={data.instituteCode} />
-        <Row label="Type"             value={data.type} />
-        <Row label="Status"           value={data.status} />
-        <Row label="Address"          value={[data.addressLine1, data.addressLine2, data.city, data.district, data.state, data.pinCode].filter(Boolean).join(', ')} />
-        <Row label="Website"          value={data.websiteUrl} />
-        <Row label="Contact Person"   value={data.contactPersonName} />
-        <Row label="Email"            value={data.contactEmail} />
-        <Row label="Mobile"           value={data.contactMobile} />
-        <Row label="Approved On"      value={data.approvedAt ? new Date(data.approvedAt).toLocaleDateString('en-IN') : '—'} />
-        <Row label="Registered On"    value={data.createdAt   ? new Date(data.createdAt).toLocaleDateString('en-IN')  : '—'} />
-      </div>
+      <DetailCard
+        title={data.name || user?.instituteName}
+        subtitle={data.instituteCode || 'Code not available'}
+        icon="🏫">
+        <DetailRow label="Institute Code" value={data.instituteCode} mono />
+        <DetailRow label="Type"           value={data.type} />
+        <DetailRow label="Status"         value={data.status} />
+        <DetailRow label="Address"        value={address} />
+        <DetailRow label="Website"        value={data.websiteUrl} />
+        <DetailRow label="Contact Person" value={data.contactPersonName} />
+        <DetailRow label="Email"          value={data.contactEmail} />
+        <DetailRow label="Mobile"         value={data.contactMobile} />
+        <DetailRow label="Approved On"    value={data.approvedAt ? new Date(data.approvedAt).toLocaleDateString('en-IN') : null} />
+        <DetailRow label="Registered On"  value={data.createdAt ? new Date(data.createdAt).toLocaleDateString('en-IN') : null} />
+      </DetailCard>
 
       {/* Portal user info */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-        <h3 className="text-base font-heading font-bold text-primary-900 mb-4">Portal Account</h3>
-        <Row label="Login Email" value={user?.email} />
-        <Row label="Role"        value={user?.role} />
-      </div>
+      <DetailCard title="Portal Account" icon="🔐">
+        <DetailRow label="Login Email" value={user?.email} />
+        <DetailRow label="Role"        value={user?.role} />
+      </DetailCard>
 
       {/* Change password */}
       <ChangePasswordForm />

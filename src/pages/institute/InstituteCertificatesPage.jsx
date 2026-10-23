@@ -2,15 +2,18 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listCertificates, downloadCertificatePdf } from '../../services/instituteService.js';
 import CertificatePreview from '../../components/certificates/CertificatePreview.jsx';
+import {
+  PageHeader, Toolbar, FilterPills, DataTable,
+  Pagination, StatusBadge, ErrorBanner,
+} from '../../components/ui/index.js';
 
-const STATUS_COLORS = {
-  REQUESTED:    'bg-yellow-100 text-yellow-800',
-  UNDER_REVIEW: 'bg-blue-100 text-blue-700',
-  APPROVED:     'bg-green-100 text-green-700',
-  ISSUED:       'bg-emerald-100 text-emerald-800',
-  REJECTED:     'bg-red-100 text-red-700',
-  REVOKED:      'bg-gray-200 text-gray-600',
-};
+const STATUS_TABS = [
+  { value: '',             label: 'All' },
+  { value: 'REQUESTED',    label: 'Requested' },
+  { value: 'UNDER_REVIEW', label: 'Under Review' },
+  { value: 'ISSUED',       label: 'Issued' },
+  { value: 'REJECTED',     label: 'Rejected' },
+];
 
 export default function InstituteCertificatesPage() {
   const [certs,      setCerts]      = useState([]);
@@ -45,105 +48,71 @@ export default function InstituteCertificatesPage() {
     } catch (err) { alert('Download failed: ' + err.message); }
   };
 
-  return (
-    <div className="space-y-5">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-heading font-bold text-primary-900">Certificates</h1>
-          <p className="text-sm text-gray-500">{pagination.totalElements} total</p>
+  const columns = [
+    {
+      key: 'certificateNumber', header: 'Cert Number', primary: true,
+      render: (c) => (
+        <div className="min-w-0">
+          <span className="font-semibold text-gray-900 block truncate">{c.studentName}</span>
+          <span className="font-mono text-[11px] text-gray-400">{c.certificateNumber || '—'}</span>
         </div>
-        <button onClick={() => navigate('/institute/batches')}
-          className="btn-primary text-sm">
-          + Apply for Certificate
-        </button>
-      </div>
-
-      {/* Status filter */}
-      <div className="flex flex-wrap gap-2">
-        {[['', 'All'], ['REQUESTED','Requested'], ['UNDER_REVIEW','Under Review'],
-          ['ISSUED','Issued'], ['REJECTED','Rejected']].map(([val, label]) => (
-          <button key={val}
-            onClick={() => { setStatus(val); setPage(0); }}
-            className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors
-              ${statusFilter === val ? 'bg-primary-800 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-primary-300'}`}>
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {error && <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">{error}</div>}
-
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        {loading ? (
-          <div className="flex items-center justify-center py-16 text-gray-400">
-            <svg className="animate-spin w-6 h-6 mr-2" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-            </svg>Loading...
-          </div>
-        ) : certs.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="text-4xl mb-3">📜</div>
-            <p className="text-gray-500 font-medium">No certificates found</p>
-            <button onClick={() => navigate('/institute/batches')}
-              className="mt-3 text-sm text-primary-700 underline">
-              Apply for your first certificate →
+      ),
+    },
+    { key: 'courseName', header: 'Course',
+      render: (c) => <span className="text-gray-600 truncate block max-w-[200px]">{c.courseName}</span> },
+    { key: 'status', header: 'Status', render: (c) => <StatusBadge status={c.status} /> },
+    {
+      key: 'actions', header: 'Actions', align: 'right',
+      render: (c) => (
+        c.status === 'ISSUED' ? (
+          <div className="flex gap-2.5 flex-wrap justify-end items-center">
+            <button onClick={() => setPreview(c)}
+              className="text-xs font-semibold text-primary-700 hover:underline">👁 Preview</button>
+            <button onClick={() => handleDownload(c.id, c.certificateNumber)}
+              className="text-xs font-semibold text-gray-500 hover:underline">
+              {c.certificateType === 'TYPING' ? '⬇ Typing Certificate' : '⬇ AICIT Certificate'}
             </button>
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-100">
-                  {['Cert Number','Student','Course','Status','Actions'].map(h => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {certs.map(c => (
-                  <tr key={c.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-mono text-xs">{c.certificateNumber || '—'}</td>
-                    <td className="px-4 py-3 font-medium text-gray-900">{c.studentName}</td>
-                    <td className="px-4 py-3 text-gray-600 max-w-[180px] truncate">{c.courseName}</td>
-                    <td className="px-4 py-3">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${STATUS_COLORS[c.status] || 'bg-gray-100 text-gray-600'}`}>
-                        {c.status?.replace('_', ' ')}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      {c.status === 'ISSUED' && (
-                        <div className="flex gap-3 flex-wrap">
-                          <button onClick={() => setPreview(c)}
-                            className="text-xs text-primary-700 hover:underline font-semibold">
-                            👁 Preview
-                          </button>
-                          <button onClick={() => handleDownload(c.id, c.certificateNumber)}
-                            className="text-xs text-gray-500 hover:underline font-semibold">
-                            {c.certificateType === 'TYPING'
-                              ? '⬇ Typing Certificate'
-                              : '⬇ AICIT Certificate'}
-                          </button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+        ) : <span className="text-gray-300 text-xs">—</span>
+      ),
+    },
+  ];
 
-      {pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <button disabled={page === 0} onClick={() => setPage(p => p - 1)}
-            className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40">← Previous</button>
-          <span className="text-sm text-gray-500">Page {page + 1} of {pagination.totalPages}</span>
-          <button disabled={page >= pagination.totalPages - 1} onClick={() => setPage(p => p + 1)}
-            className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40">Next →</button>
+  return (
+    <div className="space-y-5">
+      <PageHeader title="Certificates" icon="📜"
+        subtitle={`${pagination.totalElements} total`}
+        actions={
+          <button onClick={() => navigate('/institute/batches')} className="btn-primary text-sm">
+            + Apply for Certificate
+          </button>
+        } />
+
+      <Toolbar>
+        <div className="flex-1 min-w-0">
+          <FilterPills options={STATUS_TABS} value={statusFilter}
+            onChange={(v) => { setStatus(v); setPage(0); }} />
         </div>
-      )}
+      </Toolbar>
+
+      <ErrorBanner message={error} onRetry={load} />
+
+      <DataTable
+        columns={columns}
+        rows={certs}
+        rowKey={(c) => c.id}
+        loading={loading}
+        empty={{
+          icon: '📜',
+          title: 'No certificates found',
+          message: 'Apply for your first certificate to get started.',
+          action: { onClick: () => navigate('/institute/batches'), label: '+ Apply for Certificate' },
+        }}
+      />
+
+      <Pagination page={page} totalPages={pagination.totalPages}
+        pageSize={20} totalElements={pagination.totalElements}
+        onChange={setPage} />
 
       {preview && (
         <CertificatePreview
@@ -159,4 +128,3 @@ export default function InstituteCertificatesPage() {
     </div>
   );
 }
-

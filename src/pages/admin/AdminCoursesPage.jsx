@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { searchCourses, getCourseStats, createCourse, updateCourse, toggleCourseStatus } from '../../services/adminService.js';
+import {
+  PageHeader, Toolbar, SearchInput, DataTable, Pagination,
+  StatusBadge, Modal, ErrorBanner,
+} from '../../components/ui/index.js';
 
 export default function AdminCoursesPage() {
   const [courses,  setCourses]  = useState([]);
@@ -58,110 +62,88 @@ export default function AdminCoursesPage() {
     else { setSort(field); setDirection('asc'); }
     setPage(0);
   };
-  const sortArrow = (field) => sort === field ? (direction === 'asc' ? ' ▲' : ' ▼') : '';
+
+  const columns = [
+    {
+      key: 'code', header: 'Code', sortable: true,
+      render: (c) => <span className="font-mono text-xs text-gray-600">{c.code}</span>,
+    },
+    {
+      key: 'name', header: 'Name', primary: true, sortable: true,
+      render: (c) => <span className="font-medium text-gray-900 block max-w-[280px] truncate" title={c.name}>{c.name}</span>,
+    },
+    { key: 'category', header: 'Category', sortable: true, render: (c) => c.category || '—' },
+    {
+      key: 'duration', header: 'Duration', sortable: true, hideOnMobile: true,
+      render: (c) => c.durationDisplay || (c.durationMonths ? `${c.durationMonths} Months` : '—'),
+    },
+    {
+      key: 'status', header: 'Status',
+      render: (c) => <StatusBadge status={c.isActive ? 'ACTIVE' : 'INACTIVE'} />,
+    },
+    {
+      key: 'actions', header: 'Actions', align: 'right',
+      render: (c) => (
+        <div className="flex gap-2.5 justify-end items-center">
+          <button onClick={() => { setEditing(c); setShowForm(true); }}
+            className="text-xs text-primary-600 hover:underline font-medium">Edit</button>
+          <button onClick={() => toggleStatus(c.id, !c.isActive)}
+            className={`text-xs font-medium hover:underline ${c.isActive ? 'text-orange-600' : 'text-green-600'}`}>
+            {c.isActive ? 'Deactivate' : 'Activate'}
+          </button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-heading font-bold text-primary-900">Courses</h1>
-          <p className="text-sm text-gray-500">
-            {stats ? `${stats.total} total · ${stats.active} active · ${stats.inactive} inactive`
-                   : `${pagination.totalElements} total`}
-          </p>
-        </div>
-        <button onClick={() => { setEditing(null); setShowForm(true); }} className="btn-primary text-sm">
-          + Add Course
-        </button>
-      </div>
+      <PageHeader title="Courses" icon="📚"
+        subtitle={stats
+          ? `${stats.total} total · ${stats.active} active · ${stats.inactive} inactive`
+          : `${pagination.totalElements} total`}
+        actions={
+          <button onClick={() => { setEditing(null); setShowForm(true); }} className="btn-primary text-sm">
+            + Add Course
+          </button>
+        } />
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3 items-center">
-        <div className="relative flex-1 min-w-[220px]">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
-          </svg>
-          <input type="search" placeholder="Search by course name or code…"
-            value={search} onChange={e => { setSearch(e.target.value); setPage(0); }}
-            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"/>
-        </div>
+      <Toolbar>
+        <SearchInput className="flex-1 min-w-0 sm:min-w-[220px]" value={search}
+          onChange={(v) => { setSearch(v); setPage(0); }}
+          placeholder="Search by course name or code…" />
         <select value={category} onChange={e => { setCategory(e.target.value); setPage(0); }}
-          className="px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary-500">
+          className="input sm:w-auto">
           <option value="">All categories</option>
           {categories.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
         <select value={active} onChange={e => { setActive(e.target.value); setPage(0); }}
-          className="px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary-500">
+          className="input sm:w-auto">
           <option value="">All statuses</option>
           <option value="true">Active</option>
           <option value="false">Inactive</option>
         </select>
-      </div>
+      </Toolbar>
 
-      {error && <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">{error}</div>}
+      <ErrorBanner message={error} onRetry={load} />
 
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        {loading ? (
-          <div className="flex items-center justify-center py-16 text-gray-400">
-            <svg className="animate-spin w-6 h-6 mr-2" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Loading...
-          </div>
-        ) : courses.length === 0 ? (
-          <div className="text-center py-16 text-gray-400">
-            <div className="text-4xl mb-2">📚</div>
-            <p>No courses found{search ? ` for “${search}”` : ''}.</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-100">
-                  <th onClick={() => setSortField('code')}     className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase cursor-pointer select-none">Code{sortArrow('code')}</th>
-                  <th onClick={() => setSortField('name')}     className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase cursor-pointer select-none">Name{sortArrow('name')}</th>
-                  <th onClick={() => setSortField('category')} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase cursor-pointer select-none">Category{sortArrow('category')}</th>
-                  <th onClick={() => setSortField('duration')} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase cursor-pointer select-none">Duration{sortArrow('duration')}</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {courses.map(c => (
-                  <tr key={c.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-mono text-xs text-gray-600">{c.code}</td>
-                    <td className="px-4 py-3 font-medium text-gray-900 max-w-[280px] truncate" title={c.name}>{c.name}</td>
-                    <td className="px-4 py-3 text-gray-600">{c.category || '—'}</td>
-                    <td className="px-4 py-3 text-gray-600">{c.durationDisplay || (c.durationMonths ? `${c.durationMonths} Months` : '—')}</td>
-                    <td className="px-4 py-3">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${c.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'}`}>
-                        {c.isActive ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex gap-2">
-                        <button onClick={() => { setEditing(c); setShowForm(true); }}
-                          className="text-xs text-primary-600 hover:underline font-medium">Edit</button>
-                        <button onClick={() => toggleStatus(c.id, !c.isActive)}
-                          className={`text-xs font-medium hover:underline ${c.isActive ? 'text-orange-600' : 'text-green-600'}`}>
-                          {c.isActive ? 'Deactivate' : 'Activate'}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      <DataTable
+        columns={columns}
+        rows={courses}
+        rowKey={(c) => c.id}
+        loading={loading}
+        sort={{ field: sort, direction }}
+        onSort={setSortField}
+        empty={{
+          icon: '📚',
+          title: 'No courses found',
+          message: search ? `No courses match “${search}”.` : 'Add a course to get started.',
+        }}
+      />
 
-      {pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <button disabled={page === 0} onClick={() => setPage(p => p - 1)}
-            className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40">← Previous</button>
-          <span className="text-sm text-gray-500">Page {page + 1} of {pagination.totalPages}</span>
-          <button disabled={page >= pagination.totalPages - 1} onClick={() => setPage(p => p + 1)}
-            className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40">Next →</button>
-        </div>
-      )}
+      <Pagination page={page} totalPages={pagination.totalPages}
+        pageSize={20} totalElements={pagination.totalElements}
+        onChange={setPage} />
 
       {showForm && (
         <CourseFormModal
@@ -198,41 +180,36 @@ function CourseFormModal({ editing, onClose, onSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6">
-        <h3 className="text-lg font-heading font-bold text-primary-900 mb-4">
-          {editing ? 'Edit Course' : 'Add New Course'}
-        </h3>
-        {error && <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{error}</div>}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {[
-            {name:'name',            label:'Course Name',       required:true},
-            {name:'code',            label:'Course Code',       required:!editing},
-            {name:'category',        label:'Category'},
-            {name:'durationLabel',   label:'Duration (e.g. 3 MONTHS, 45 DAYS, 90 HOURS)'},
-            {name:'durationMonths',  label:'Duration in whole months (optional)', type:'number'},
-          ].map(f => (
-            <div key={f.name}>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{f.label}{f.required&&<span className="text-red-500 ml-0.5">*</span>}</label>
-              <input type={f.type||'text'} required={f.required} value={form[f.name]}
-                onChange={e => setForm(prev=>({...prev,[f.name]:e.target.value}))}
-                disabled={f.name==='code'&&!!editing}
-                className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-50"/>
-            </div>
-          ))}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-            <textarea rows={3} value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"/>
+    <Modal open onClose={onClose} title={editing ? 'Edit Course' : 'Add New Course'}
+      footer={<>
+        <button type="button" onClick={onClose} className="btn-ghost text-sm">Cancel</button>
+        <button type="submit" form="course-form" disabled={loading} className="btn-primary text-sm disabled:opacity-50">
+          {loading ? 'Saving...' : editing ? 'Save Changes' : 'Add Course'}
+        </button>
+      </>}>
+      {error && <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{error}</div>}
+      <form id="course-form" onSubmit={handleSubmit} className="space-y-4">
+        {[
+          {name:'name',            label:'Course Name',       required:true},
+          {name:'code',            label:'Course Code',       required:!editing},
+          {name:'category',        label:'Category'},
+          {name:'durationLabel',   label:'Duration (e.g. 3 MONTHS, 45 DAYS, 90 HOURS)'},
+          {name:'durationMonths',  label:'Duration in whole months (optional)', type:'number'},
+        ].map(f => (
+          <div key={f.name}>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{f.label}{f.required&&<span className="text-red-500 ml-0.5">*</span>}</label>
+            <input type={f.type||'text'} required={f.required} value={form[f.name]}
+              onChange={e => setForm(prev=>({...prev,[f.name]:e.target.value}))}
+              disabled={f.name==='code'&&!!editing}
+              className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-50"/>
           </div>
-          <div className="flex gap-3 justify-end pt-2">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
-            <button type="submit" disabled={loading} className="btn-primary text-sm disabled:opacity-50">
-              {loading ? 'Saving...' : editing ? 'Save Changes' : 'Add Course'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        ))}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <textarea rows={3} value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))}
+            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"/>
+        </div>
+      </form>
+    </Modal>
   );
 }

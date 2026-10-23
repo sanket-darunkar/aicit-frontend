@@ -2,41 +2,29 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { listAdminCertificates, approveCertificate, rejectCertificate, revokeCertificate, downloadAdminCertificatePdf } from '../../services/adminService.js';
 import CertificatePreview from '../../components/certificates/CertificatePreview.jsx';
-
-const STATUS_COLORS = {
-  REQUESTED:    'bg-yellow-100 text-yellow-800',
-  UNDER_REVIEW: 'bg-blue-100 text-blue-700',
-  APPROVED:     'bg-green-100 text-green-700',
-  ISSUED:       'bg-emerald-100 text-emerald-800',
-  REJECTED:     'bg-red-100 text-red-700',
-  REVOKED:      'bg-gray-200 text-gray-600',
-};
+import {
+  PageHeader, Toolbar, FilterPills, SearchInput, DataTable, Pagination,
+  StatusBadge, Modal, ErrorBanner,
+} from '../../components/ui/index.js';
 
 // Generic confirm modal (reject / revoke — needs a reason field)
 function ConfirmModal({ title, message, onConfirm, onCancel, confirmLabel, danger }) {
   const [reason, setReason] = useState('');
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
-        <h3 className="text-lg font-heading font-bold text-gray-900 mb-2">{title}</h3>
-        <p className="text-sm text-gray-600 mb-4">{message}</p>
-        <textarea rows={3} placeholder="Reason (optional)" value={reason}
-          onChange={e => setReason(e.target.value)}
-          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg mb-4 resize-none
-                     focus:outline-none focus:ring-2 focus:ring-primary-500" />
-        <div className="flex gap-3 justify-end">
-          <button onClick={onCancel}
-            className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50">
-            Cancel
-          </button>
-          <button onClick={() => onConfirm(reason)}
-            className={`px-4 py-2 text-sm font-semibold text-white rounded-lg
-              ${danger ? 'bg-red-600 hover:bg-red-700' : 'bg-primary-800 hover:bg-primary-700'}`}>
-            {confirmLabel}
-          </button>
-        </div>
-      </div>
-    </div>
+    <Modal open onClose={onCancel} title={title}
+      footer={<>
+        <button onClick={onCancel} className="btn-ghost text-sm">Cancel</button>
+        <button onClick={() => onConfirm(reason)}
+          className={`px-4 py-2 text-sm font-semibold text-white rounded-xl
+            ${danger ? 'bg-red-600 hover:bg-red-700' : 'bg-primary-800 hover:bg-primary-700'}`}>
+          {confirmLabel}
+        </button>
+      </>}>
+      <p className="text-sm text-gray-600 mb-4">{message}</p>
+      <textarea rows={3} placeholder="Reason (optional)" value={reason}
+        onChange={e => setReason(e.target.value)}
+        className="input resize-none" />
+    </Modal>
   );
 }
 
@@ -60,9 +48,15 @@ function ApproveModal({ studentName, initialMarks, initialGrade, onConfirm, onCa
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4">
-        <h3 className="text-lg font-heading font-bold text-gray-900">Approve Certificate</h3>
+    <Modal open onClose={onCancel} title="Approve Certificate"
+      footer={<>
+        <button onClick={onCancel} className="btn-ghost text-sm">Cancel</button>
+        <button onClick={handleConfirm}
+          className="px-4 py-2 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-xl transition-colors">
+          ✅ Approve &amp; Issue
+        </button>
+      </>}>
+      <div className="space-y-4">
         <p className="text-sm text-gray-600">
           Approve and issue certificate for <span className="font-semibold">{studentName}</span>?
         </p>
@@ -113,20 +107,18 @@ function ApproveModal({ studentName, initialMarks, initialGrade, onConfirm, onCa
         <p className="text-xs text-gray-400">
           A PDF certificate will be generated automatically upon approval.
         </p>
-        <div className="flex gap-3 justify-end pt-1">
-          <button onClick={onCancel}
-            className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50">
-            Cancel
-          </button>
-          <button onClick={handleConfirm}
-            className="px-4 py-2 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors">
-            ✅ Approve & Issue
-          </button>
-        </div>
       </div>
-    </div>
+    </Modal>
   );
 }
+
+const TABS = [
+  { value: '',         label: 'All' },
+  { value: 'REQUESTED', label: 'Pending Review' },
+  { value: 'ISSUED',   label: 'Issued' },
+  { value: 'REJECTED', label: 'Rejected' },
+  { value: 'REVOKED',  label: 'Revoked' },
+];
 
 export default function AdminCertificatesPage() {
   const [certs,      setCerts]      = useState([]);
@@ -172,6 +164,52 @@ export default function AdminCertificatesPage() {
     } catch (err) { alert('Download failed: ' + err.message); }
   };
 
+  const columns = [
+    {
+      key: 'certNumber', header: 'Cert Number', primary: true,
+      render: (c) => (
+        <div className="min-w-0">
+          <span className="font-mono text-xs text-primary-800 font-semibold block truncate">{c.certificateNumber || '—'}</span>
+          <span className="text-[11px] text-gray-400 truncate block max-w-[160px]">{c.studentName}</span>
+        </div>
+      ),
+    },
+    { key: 'course', header: 'Course', hideOnMobile: true,
+      render: (c) => <span className="text-gray-600 block max-w-[150px] truncate">{c.courseName}</span> },
+    { key: 'institute', header: 'Institute', hideOnMobile: true,
+      render: (c) => <span className="text-gray-600 block max-w-[120px] truncate">{c.instituteName}</span> },
+    { key: 'status', header: 'Status', render: (c) => <StatusBadge status={c.status} /> },
+    {
+      key: 'actions', header: 'Actions', align: 'right',
+      render: (c) => (
+        <div className="flex gap-2.5 flex-wrap justify-end items-center">
+          {(c.status === 'REQUESTED' || c.status === 'UNDER_REVIEW') && (
+            <>
+              <button onClick={() => setModal({ type: 'approve', cert: c })}
+                className="text-xs text-green-600 hover:underline font-semibold">Approve</button>
+              <button onClick={() => setModal({ type: 'reject', cert: c })}
+                className="text-xs text-red-600 hover:underline font-semibold">Reject</button>
+            </>
+          )}
+          {c.status === 'ISSUED' && (
+            <>
+              <button onClick={() => setPreview(c)}
+                className="text-xs text-primary-700 hover:underline font-semibold">👁 Preview</button>
+              <button onClick={() => handleDownload(c.id, c.certificateNumber)}
+                className="text-xs text-gray-500 hover:underline font-semibold">
+                {c.certificateType === 'TYPING' ? '⬇ Typing Cert' : '⬇ AICIT Cert'}
+              </button>
+              <button onClick={() => setModal({ type: 'revoke', cert: c })}
+                className="text-xs text-red-500 hover:underline font-semibold">Revoke</button>
+            </>
+          )}
+          <Link to={`/admin/certificates/${c.id}`}
+            className="text-xs text-gray-500 hover:underline font-medium">Detail</Link>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="space-y-5">
       {modal?.type === 'approve' && (
@@ -196,117 +234,31 @@ export default function AdminCertificatesPage() {
         />
       )}
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-heading font-bold text-primary-900">Certificates</h1>
-          <p className="text-sm text-gray-500">{pagination.totalElements} total</p>
+      <PageHeader title="Certificates" icon="📜"
+        subtitle={`${pagination.totalElements} total certificate${pagination.totalElements === 1 ? '' : 's'}`} />
+
+      <Toolbar>
+        <div className="flex-1 min-w-0">
+          <FilterPills options={TABS} value={status} onChange={(v) => { setStatus(v); setPage(0); }} />
         </div>
-      </div>
+        <SearchInput className="sm:w-72" defaultValue={search}
+          onSubmit={(v) => { setSearch(v); setPage(0); }}
+          placeholder="Search by cert number or student…" />
+      </Toolbar>
 
-      {/* Filter tabs */}
-      <div className="flex flex-wrap gap-2">
-        {[['', 'All'], ['REQUESTED', 'Pending Review'], ['ISSUED', 'Issued'], ['REJECTED', 'Rejected'], ['REVOKED', 'Revoked']].map(([val, label]) => (
-          <button key={val}
-            onClick={() => { setStatus(val); setPage(0); }}
-            className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors
-              ${status === val ? 'bg-primary-800 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-primary-300'}`}>
-            {label}
-          </button>
-        ))}
-      </div>
+      <ErrorBanner message={error} onRetry={load} />
 
-      {/* Search */}
-      <div className="relative max-w-sm">
-        <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
-        </svg>
-        <input type="search" placeholder="Search by cert number or student..."
-          defaultValue={search}
-          onKeyDown={e => { if (e.key==='Enter') { setSearch(e.target.value); setPage(0); }}}
-          className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"/>
-      </div>
+      <DataTable
+        columns={columns}
+        rows={certs}
+        rowKey={(c) => c.id}
+        loading={loading}
+        empty={{ icon: '📜', title: 'No certificates found', message: 'Try adjusting the filters or search.' }}
+      />
 
-      {error && <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">{error}</div>}
-
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        {loading ? (
-          <div className="flex items-center justify-center py-16 text-gray-400">
-            <svg className="animate-spin w-6 h-6 mr-2" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-            </svg>Loading...
-          </div>
-        ) : certs.length === 0 ? (
-          <div className="text-center py-16 text-gray-400">
-            <div className="text-4xl mb-2">📜</div>
-            <p>No certificates found</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-100">
-                  {['Cert Number','Student','Course','Institute','Status','Actions'].map(h => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {certs.map(c => (
-                  <tr key={c.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-mono text-xs">{c.certificateNumber || '—'}</td>
-                    <td className="px-4 py-3 font-medium text-gray-900">{c.studentName}</td>
-                    <td className="px-4 py-3 text-gray-600 max-w-[150px] truncate">{c.courseName}</td>
-                    <td className="px-4 py-3 text-gray-600 max-w-[120px] truncate">{c.instituteName}</td>
-                    <td className="px-4 py-3">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${STATUS_COLORS[c.status] || 'bg-gray-100 text-gray-600'}`}>
-                        {c.status?.replace('_',' ')}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex gap-2 flex-wrap">
-                        {(c.status === 'REQUESTED' || c.status === 'UNDER_REVIEW') && (
-                          <>
-                            <button onClick={() => setModal({ type: 'approve', cert: c })}
-                              className="text-xs text-green-600 hover:underline font-semibold">Approve</button>                            <button onClick={() => setModal({ type: 'reject', cert: c })}
-                              className="text-xs text-red-600 hover:underline font-semibold">Reject</button>
-                          </>
-                        )}
-                        {c.status === 'ISSUED' && (
-                          <>
-                            <button onClick={() => setPreview(c)}
-                              className="text-xs text-primary-700 hover:underline font-semibold">👁 Preview</button>
-                            <button onClick={() => handleDownload(c.id, c.certificateNumber)}
-                              className="text-xs text-gray-500 hover:underline font-semibold">
-                              {c.certificateType === 'TYPING'
-                                ? '⬇ Typing Cert'
-                                : '⬇ AICIT Cert'}
-                            </button>
-                            <button onClick={() => setModal({ type: 'revoke', cert: c })}
-                              className="text-xs text-red-500 hover:underline font-semibold">Revoke</button>
-                          </>
-                        )}
-                        <Link to={`/admin/certificates/${c.id}`}
-                          className="text-xs text-gray-500 hover:underline font-medium">Detail</Link>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <button disabled={page===0} onClick={() => setPage(p=>p-1)}
-            className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40">← Previous</button>
-          <span className="text-sm text-gray-500">Page {page+1} of {pagination.totalPages}</span>
-          <button disabled={page>=pagination.totalPages-1} onClick={() => setPage(p=>p+1)}
-            className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40">Next →</button>
-        </div>
-      )}
+      <Pagination page={page} totalPages={pagination.totalPages}
+        pageSize={20} totalElements={pagination.totalElements}
+        onChange={setPage} />
 
       {preview && (
         <CertificatePreview

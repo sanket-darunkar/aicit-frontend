@@ -7,55 +7,30 @@ import {
   processBatch,
   downloadAdminBatchZip,
 } from '../../services/adminService.js';
+import {
+  PageHeader, Toolbar, FilterPills, DataTable, Pagination,
+  StatusBadge, Modal, ErrorBanner, Spinner,
+} from '../../components/ui/index.js';
 
 const money = (n) => `₹${Number(n ?? 0).toLocaleString('en-IN')}`;
-const pretty = (s) => (s || '').replace(/_/g, ' ');
 
-const PAY_BADGE = {
-  PENDING:              'bg-yellow-100 text-yellow-800',
-  UTR_SUBMITTED:        'bg-blue-100 text-blue-700',
-  VERIFICATION_PENDING: 'bg-blue-100 text-blue-700',
-  PAID:                 'bg-green-100 text-green-700',
-  REJECTED:             'bg-red-100 text-red-700',
-};
-const BATCH_BADGE = {
-  DRAFT:      'bg-gray-100 text-gray-600',
-  VALIDATED:  'bg-gray-100 text-gray-600',
-  SUBMITTED:  'bg-blue-100 text-blue-700',
-  PROCESSING: 'bg-amber-100 text-amber-700',
-  GENERATED:  'bg-emerald-100 text-emerald-800',
-  COMPLETED:  'bg-green-100 text-green-700',
-  REJECTED:   'bg-red-100 text-red-700',
-};
-
-const Badge = ({ map, value }) => (
-  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${map[value] || 'bg-gray-100 text-gray-600'}`}>
-    {pretty(value)}
-  </span>
-);
-
-// Reason modal (reject)
+// Reason modal (reject) — kit Modal
 function ReasonModal({ title, message, confirmLabel, onConfirm, onCancel, busy }) {
   const [reason, setReason] = useState('');
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
-        <h3 className="text-lg font-heading font-bold text-gray-900 mb-2">{title}</h3>
-        <p className="text-sm text-gray-600 mb-4">{message}</p>
-        <textarea rows={3} placeholder="Reason (optional)" value={reason}
-          onChange={e => setReason(e.target.value)}
-          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg mb-4 resize-none
-                     focus:outline-none focus:ring-2 focus:ring-primary-500" />
-        <div className="flex gap-3 justify-end">
-          <button onClick={onCancel} disabled={busy}
-            className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50">Cancel</button>
-          <button onClick={() => onConfirm(reason)} disabled={busy}
-            className="px-4 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg disabled:opacity-50">
-            {busy ? 'Working…' : confirmLabel}
-          </button>
-        </div>
-      </div>
-    </div>
+    <Modal open onClose={() => !busy && onCancel()} title={title}
+      footer={<>
+        <button onClick={onCancel} disabled={busy} className="btn-ghost text-sm">Cancel</button>
+        <button onClick={() => onConfirm(reason)} disabled={busy}
+          className="text-sm px-4 py-2 rounded-xl font-semibold text-white bg-red-600 hover:bg-red-700 disabled:opacity-50">
+          {busy ? 'Working…' : confirmLabel}
+        </button>
+      </>}>
+      <p className="text-sm text-gray-600 mb-4">{message}</p>
+      <textarea rows={3} placeholder="Reason (optional)" value={reason}
+        onChange={e => setReason(e.target.value)}
+        className="input resize-none" />
+    </Modal>
   );
 }
 
@@ -106,13 +81,16 @@ function BatchDetail({ batchId, onClose, onChanged }) {
   const canZip     = batch && ['GENERATED', 'COMPLETED'].includes(batch.batchStatus);
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/40">
-      <div className="w-full max-w-xl bg-white h-full overflow-y-auto shadow-2xl animate-slide-in-left">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white z-10">
-          <h3 className="text-lg font-heading font-bold text-primary-900">
+    <div className="fixed inset-0 z-50 flex justify-end" role="dialog" aria-modal="true">
+      <div className="absolute inset-0 bg-primary-950/50 backdrop-blur-sm animate-fade-in" onClick={onClose} />
+      <div className="relative w-full max-w-xl bg-white h-full overflow-y-auto shadow-hero flex flex-col animate-slide-in-left">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white z-10 flex-shrink-0">
+          <h3 className="text-base font-heading font-bold text-primary-900 truncate">
             {batch?.batchCode || 'Batch'}
           </h3>
-          <button onClick={onClose} className="p-2 rounded-lg text-gray-400 hover:bg-gray-100" aria-label="Close">
+          <button onClick={onClose}
+            className="p-1.5 -mr-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-surface-100 transition-colors flex-shrink-0"
+            aria-label="Close">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -120,10 +98,12 @@ function BatchDetail({ batchId, onClose, onChanged }) {
         </div>
 
         <div className="p-6 space-y-5">
-          {error && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{error}</div>}
+          <ErrorBanner message={error} />
 
           {loading ? (
-            <div className="py-16 text-center text-gray-400">Loading…</div>
+            <div className="py-16 flex items-center justify-center">
+              <Spinner className="w-7 h-7" label="Loading…" />
+            </div>
           ) : !batch ? (
             <div className="py-16 text-center text-gray-400">Batch not found.</div>
           ) : (
@@ -134,8 +114,8 @@ function BatchDetail({ batchId, onClose, onChanged }) {
                 <Info label="Type" value={batch.type === 'BULK' ? 'Bulk' : 'Single'} />
                 <Info label="Certificates" value={batch.certificateCount} />
                 <Info label="Amount" value={money(batch.totalAmount)} />
-                <Info label="Payment" value={<Badge map={PAY_BADGE} value={batch.paymentStatus} />} />
-                <Info label="Status" value={<Badge map={BATCH_BADGE} value={batch.batchStatus} />} />
+                <Info label="Payment" value={<StatusBadge status={batch.paymentStatus} />} />
+                <Info label="Status" value={<StatusBadge status={batch.batchStatus} />} />
                 <Info label="UTR" value={batch.utrNumber || '—'} mono />
                 <Info label="Paid at" value={batch.paidAt ? new Date(batch.paidAt).toLocaleString() : '—'} />
               </div>
@@ -180,24 +160,22 @@ function BatchDetail({ batchId, onClose, onChanged }) {
               {/* Certificates */}
               <div>
                 <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Certificates</p>
-                <div className="rounded-xl border border-gray-100 overflow-hidden">
-                  <table className="w-full text-sm">
-                    <tbody className="divide-y divide-gray-50">
-                      {(batch.certificates ?? []).map(c => (
-                        <tr key={c.id}>
-                          <td className="px-3 py-2 text-gray-800">{c.studentName}</td>
-                          <td className="px-3 py-2 text-gray-500 max-w-[160px] truncate">{c.courseName}</td>
-                          <td className="px-3 py-2 font-mono text-xs text-gray-400">{c.certificateNumber || '—'}</td>
-                          <td className="px-3 py-2">
-                            <span className="text-xs font-semibold text-gray-600">{pretty(c.status)}</span>
-                          </td>
-                        </tr>
-                      ))}
-                      {(!batch.certificates || batch.certificates.length === 0) && (
-                        <tr><td className="px-3 py-4 text-center text-gray-400 text-xs">No certificates</td></tr>
-                      )}
-                    </tbody>
-                  </table>
+                <div className="rounded-xl border border-gray-100 overflow-hidden divide-y divide-gray-50">
+                  {(batch.certificates ?? []).map(c => (
+                    <div key={c.id} className="flex items-center gap-3 px-3 py-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm text-gray-800 truncate">{c.studentName}</p>
+                        <p className="text-xs text-gray-500 truncate">{c.courseName}</p>
+                      </div>
+                      <span className="font-mono text-xs text-gray-400 hidden sm:block truncate max-w-[140px]">
+                        {c.certificateNumber || '—'}
+                      </span>
+                      <StatusBadge status={c.status} size="sm" />
+                    </div>
+                  ))}
+                  {(!batch.certificates || batch.certificates.length === 0) && (
+                    <div className="px-3 py-4 text-center text-gray-400 text-xs">No certificates</div>
+                  )}
                 </div>
               </div>
             </>
@@ -228,6 +206,14 @@ function Info({ label, value, mono }) {
   );
 }
 
+const TABS = [
+  { value: 'VERIFICATION_PENDING', label: 'To verify' },
+  { value: 'PAID',                 label: 'Paid' },
+  { value: 'PENDING',              label: 'Awaiting payment' },
+  { value: 'REJECTED',             label: 'Rejected' },
+  { value: '',                     label: 'All' },
+];
+
 export default function AdminBatchesPage() {
   const [batches, setBatches]       = useState([]);
   const [pagination, setPagination] = useState({ totalElements: 0, totalPages: 0 });
@@ -249,90 +235,56 @@ export default function AdminBatchesPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const TABS = [
-    ['VERIFICATION_PENDING', 'To verify'],
-    ['PAID', 'Paid'],
-    ['PENDING', 'Awaiting payment'],
-    ['REJECTED', 'Rejected'],
-    ['', 'All'],
+  const columns = [
+    {
+      key: 'batchCode', header: 'Batch', primary: true,
+      render: (b) => (
+        <div className="min-w-0">
+          <span className="font-mono text-xs text-primary-800 font-semibold block truncate">{b.batchCode}</span>
+          <span className="text-[11px] text-gray-400 truncate block max-w-[160px]">{b.instituteName}</span>
+        </div>
+      ),
+    },
+    { key: 'type', header: 'Type', hideOnMobile: true, render: (b) => b.type === 'BULK' ? 'Bulk' : 'Single' },
+    { key: 'certs', header: 'Certs', render: (b) => b.certificateCount },
+    { key: 'amount', header: 'Amount', render: (b) => <span className="font-semibold text-gray-800">{money(b.totalAmount)}</span> },
+    { key: 'utr', header: 'UTR', hideOnMobile: true, render: (b) => <span className="font-mono text-xs text-gray-400">{b.utrNumber || '—'}</span> },
+    { key: 'payment', header: 'Payment', render: (b) => <StatusBadge status={b.paymentStatus} /> },
+    { key: 'status', header: 'Status', render: (b) => <StatusBadge status={b.batchStatus} /> },
+    {
+      key: 'actions', header: 'Actions', align: 'right',
+      render: (b) => (
+        <button onClick={(e) => { e.stopPropagation(); setDetailId(b.id); }}
+          className="text-xs font-semibold text-primary-600 hover:underline">Review →</button>
+      ),
+    },
   ];
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-heading font-bold text-primary-900">Certificate Batches</h1>
-          <p className="text-sm text-gray-500">{pagination.totalElements} total · verify payments &amp; generate certificates</p>
+      <PageHeader title="Certificate Batches" icon="🧾"
+        subtitle={`${pagination.totalElements} total · verify payments & generate certificates`} />
+
+      <Toolbar>
+        <div className="flex-1 min-w-0">
+          <FilterPills options={TABS} value={filter} onChange={(v) => { setFilter(v); setPage(0); }} />
         </div>
-      </div>
+      </Toolbar>
 
-      <div className="flex flex-wrap gap-2">
-        {TABS.map(([val, label]) => (
-          <button key={val} onClick={() => { setFilter(val); setPage(0); }}
-            className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors
-              ${filter === val ? 'bg-primary-800 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-primary-300'}`}>
-            {label}
-          </button>
-        ))}
-      </div>
+      <ErrorBanner message={error} onRetry={load} />
 
-      {error && <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">{error}</div>}
+      <DataTable
+        columns={columns}
+        rows={batches}
+        rowKey={(b) => b.id}
+        onRowClick={(b) => setDetailId(b.id)}
+        loading={loading}
+        empty={{ icon: '🧾', title: 'No batches found', message: 'Try a different filter.' }}
+      />
 
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        {loading ? (
-          <div className="flex items-center justify-center py-16 text-gray-400">
-            <svg className="animate-spin w-6 h-6 mr-2" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-            </svg>Loading…
-          </div>
-        ) : batches.length === 0 ? (
-          <div className="text-center py-16 text-gray-400">
-            <div className="text-4xl mb-2">🧾</div>
-            <p>No batches found</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-100">
-                  {['Batch', 'Institute', 'Type', 'Certs', 'Amount', 'UTR', 'Payment', 'Status', ''].map(h => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {batches.map(b => (
-                  <tr key={b.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => setDetailId(b.id)}>
-                    <td className="px-4 py-3 font-mono text-xs">{b.batchCode}</td>
-                    <td className="px-4 py-3 text-gray-700 max-w-[140px] truncate">{b.instituteName}</td>
-                    <td className="px-4 py-3 text-gray-600">{b.type === 'BULK' ? 'Bulk' : 'Single'}</td>
-                    <td className="px-4 py-3 text-gray-800">{b.certificateCount}</td>
-                    <td className="px-4 py-3 font-semibold text-gray-800">{money(b.totalAmount)}</td>
-                    <td className="px-4 py-3 font-mono text-xs text-gray-400">{b.utrNumber || '—'}</td>
-                    <td className="px-4 py-3"><Badge map={PAY_BADGE} value={b.paymentStatus} /></td>
-                    <td className="px-4 py-3"><Badge map={BATCH_BADGE} value={b.batchStatus} /></td>
-                    <td className="px-4 py-3">
-                      <button onClick={(e) => { e.stopPropagation(); setDetailId(b.id); }}
-                        className="text-xs text-primary-600 hover:underline font-semibold">Review →</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <button disabled={page === 0} onClick={() => setPage(p => p - 1)}
-            className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40">← Previous</button>
-          <span className="text-sm text-gray-500">Page {page + 1} of {pagination.totalPages}</span>
-          <button disabled={page >= pagination.totalPages - 1} onClick={() => setPage(p => p + 1)}
-            className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40">Next →</button>
-        </div>
-      )}
+      <Pagination page={page} totalPages={pagination.totalPages}
+        pageSize={20} totalElements={pagination.totalElements}
+        onChange={setPage} />
 
       {detailId && (
         <BatchDetail batchId={detailId}
