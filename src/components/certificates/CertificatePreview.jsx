@@ -1,56 +1,59 @@
-import React, { useEffect, useState } from 'react';
-import { fetchCertificatePreviewImage } from '../../services/instituteService.js';
-import { fetchAdminCertificatePreviewImage } from '../../services/adminService.js';
+import React, { useEffect, useRef, useState } from 'react';
+import { downloadCertificatePdf } from '../../services/instituteService.js';
+import { downloadAdminCertificatePdf } from '../../services/adminService.js';
 
 /**
- * Certificate Preview — displays the EXACT same image as the downloaded PDF.
+ * Certificate Preview — displays the EXACT same PDF as the downloaded certificate.
  *
- * The backend generates one PDF (via PdfGeneratorService) and serves it two
- * ways:
- *   GET /api/institute/certificates/{id}/download  → application/pdf
- *   GET /api/institute/certificates/{id}/preview   → image/png  (page 0, 150 DPI)
+ * ONE source of truth:
+ *   Download → GET /api/.../certificates/{id}/download → PDF blob → saved to disk
+ *   Preview  → same GET, same PDF blob → embedded in <iframe>
  *
- * This component fetches the /preview PNG and shows it in a full-screen modal.
- * There is no separate HTML certificate template here — the backend is the
- * single source of truth for certificate rendering.
+ * No separate rendering engine. No HTML certificate template. No rasterisation.
+ * The user sees precisely what they will download.
  *
  * Props:
- *   cert       – certificate object (must have .id and .certificateNumber)
- *   scope      – 'admin' | 'institute'
- *   onClose    – close handler
- *   serverPdf  – optional { label, onDownload } to surface the PDF download button
+ *   cert      – certificate object (must have .id and .certificateNumber)
+ *   scope     – 'admin' | 'institute'
+ *   onClose   – close handler
+ *   serverPdf – optional { label, onDownload } — saves the same blob that is
+ *               already loaded in the iframe (no second network request)
  */
 export default function CertificatePreview({ cert, scope = 'institute', onClose, serverPdf }) {
-  const [imgUrl,  setImgUrl]  = useState(null);
+  const [pdfUrl,  setPdfUrl]  = useState(null);
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState(null);
 
-  // Fetch the backend-rendered PNG preview.
+  // Keep the object URL ref so we can revoke it on unmount without stale closure.
+  const objectUrlRef = useRef(null);
+
   useEffect(() => {
     if (!cert?.id) return;
-    let objectUrl = null;
-    let cancelled = false;
 
+    let cancelled = false;
     setLoading(true);
     setError(null);
-    setImgUrl(null);
+    setPdfUrl(null);
 
     const fetcher = scope === 'admin'
-      ? fetchAdminCertificatePreviewImage
-      : fetchCertificatePreviewImage;
+      ? downloadAdminCertificatePdf
+      : downloadCertificatePdf;
 
     fetcher(cert.id)
       .then((blob) => {
         if (cancelled) return;
         if (!blob || blob.size === 0) {
-          setError('Preview not available. The certificate may not have been issued yet.');
+          setError('PDF not available. The certificate may not have been issued yet.');
           return;
         }
-        objectUrl = URL.createObjectURL(blob);
-        setImgUrl(objectUrl);
+        // Force application/pdf MIME so browsers render inline rather than download.
+        const pdfBlob = new Blob([blob], { type: 'application/pdf' });
+        const url = URL.createObjectURL(pdfBlob);
+        objectUrlRef.current = url;
+        setPdfUrl(url);
       })
       .catch((err) => {
-        if (!cancelled) setError(err.message || 'Failed to load preview.');
+        if (!cancelled) setError(err.message || 'Failed to load certificate.');
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -58,7 +61,10 @@ export default function CertificatePreview({ cert, scope = 'institute', onClose,
 
     return () => {
       cancelled = true;
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+        objectUrlRef.current = null;
+      }
     };
   }, [cert?.id, scope]);
 
@@ -117,22 +123,23 @@ export default function CertificatePreview({ cert, scope = 'institute', onClose,
         </div>
       </div>
 
-      {/* ── Preview area ── */}
-      <div className="flex-1 overflow-auto p-4 flex justify-center items-start bg-gray-900">
+      {/* ── Viewer area ── */}
+      <div className="flex-1 relative bg-gray-800">
+
         {loading && (
-          <div className="flex flex-col items-center justify-center h-full gap-3 text-white/60">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white/60">
             <svg className="w-8 h-8 animate-spin" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor"
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
             </svg>
-            <span className="text-sm">Loading certificate preview…</span>
+            <span className="text-sm">Loading certificate…</span>
           </div>
         )}
 
         {error && (
-          <div className="flex flex-col items-center justify-center h-full gap-3 text-red-300">
-            <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-red-300 p-6">
+            <svg className="w-10 h-10 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round"
                 d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
             </svg>
@@ -140,12 +147,13 @@ export default function CertificatePreview({ cert, scope = 'institute', onClose,
           </div>
         )}
 
-        {imgUrl && !loading && (
-          <img
-            src={imgUrl}
-            alt={`Certificate for ${cert.studentName}`}
-            className="max-w-full shadow-2xl rounded"
-            style={{ maxHeight: 'calc(100vh - 100px)', objectFit: 'contain' }}
+        {/* The iframe renders the PDF natively — identical to the downloaded file. */}
+        {pdfUrl && (
+          <iframe
+            src={pdfUrl}
+            title={`Certificate – ${cert.certificateNumber || cert.studentName}`}
+            className="w-full h-full border-0"
+            style={{ display: loading ? 'none' : 'block' }}
           />
         )}
       </div>
