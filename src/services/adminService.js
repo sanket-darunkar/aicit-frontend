@@ -101,6 +101,10 @@ export const downloadAdminBatchZip = (id) =>
 export const downloadAdminCertificatePdf = (id) =>
   adminApi.get(`/api/admin/certificates/${id}/download`, { responseType: 'blob' });
 
+/** Fetch the admin certificate preview image (PNG rendered from the same PDF). Returns a Blob. */
+export const fetchAdminCertificatePreviewImage = (id) =>
+  adminApi.get(`/api/admin/certificates/${id}/preview`, { responseType: 'blob' });
+
 // ── Courses ───────────────────────────────────────────────────
 export const listCourses = () =>
   adminApi.get('/api/admin/courses');

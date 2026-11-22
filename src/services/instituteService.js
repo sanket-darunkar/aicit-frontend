@@ -54,6 +54,10 @@ export const requestCertificate = (data) =>
 export const downloadCertificatePdf = (id) =>
   instituteApi.get(`/api/institute/certificates/${id}/download`, { responseType: 'blob' });
 
+/** Fetch the certificate preview image (PNG rendered from the same PDF). Returns a Blob. */
+export const fetchCertificatePreviewImage = (id) =>
+  instituteApi.get(`/api/institute/certificates/${id}/preview`, { responseType: 'blob' });
+
 // ── Batch Certificate Flow (NEW) ──────────────────────────────
 // Pricing is server-authoritative (₹250/cert). Never trust client amount.
 
